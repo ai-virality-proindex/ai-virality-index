@@ -6,6 +6,7 @@ import ModelCard, { ModelScore } from './ModelCard'
 import HeatMap from './HeatMap'
 import TopMovers from './TopMovers'
 import ModeToggle from './ModeToggle'
+import UpdateCountdown from './UpdateCountdown'
 
 interface DashboardViewProps {
   scores: ModelScore[]
@@ -46,9 +47,9 @@ export default function DashboardView({
         <div>
           <h1 className="text-2xl font-bold text-white">Dashboard</h1>
           {lastDate && (
-            <p className="text-sm text-slate-500 mt-1">
-              Last updated: {lastDate}
-            </p>
+            <div className="mt-1">
+              <UpdateCountdown lastDate={lastDate} />
+            </div>
           )}
         </div>
         <ModeToggle mode={mode} onChange={setMode} />

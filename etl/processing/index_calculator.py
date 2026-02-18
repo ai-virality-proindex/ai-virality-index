@@ -23,6 +23,12 @@ import logging
 from datetime import date, timedelta
 from typing import Any
 
+from etl.config import (
+    WEIGHTS_TRADE,
+    WEIGHTS_CONTENT,
+    EWMA_ALPHA_TRADE as ALPHA_TRADE,
+    EWMA_ALPHA_CONTENT as ALPHA_CONTENT,
+)
 from etl.processing.normalizer import quantile_normalize
 from etl.processing.smoother import ewma
 from etl.storage.supabase_client import (
@@ -32,30 +38,6 @@ from etl.storage.supabase_client import (
 )
 
 logger = logging.getLogger(__name__)
-
-# ----- Weight Configurations -----
-
-WEIGHTS_TRADE = {
-    "T": 0.20,
-    "S": 0.20,
-    "G": 0.15,
-    "N": 0.10,
-    "Q": 0.20,
-    "M": 0.15,
-}
-
-WEIGHTS_CONTENT = {
-    "T": 0.28,
-    "S": 0.32,
-    "G": 0.08,
-    "N": 0.20,
-    "Q": 0.05,
-    "M": 0.07,
-}
-
-# EWMA alpha per mode
-ALPHA_TRADE = 0.35
-ALPHA_CONTENT = 0.25
 
 # ----- Component Data Fetchers -----
 
@@ -165,13 +147,13 @@ def calculate_index(
         normalized = quantile_normalize(history)
         components_normalized[comp_code] = normalized
 
-        # Smooth: apply EWMA to the full normalized history, take the last
-        # We need to normalize the full history first for EWMA to work properly
+        # Smooth: normalize each point using a 90-day rolling window, then EWMA
         if len(history) > 1:
             all_normalized = []
             for i in range(len(history)):
-                vals_so_far = history[:i + 1]
-                all_normalized.append(quantile_normalize(vals_so_far))
+                window_start = max(0, i - 89)  # 90-day rolling window
+                window = history[window_start:i + 1]
+                all_normalized.append(quantile_normalize(window, current_value=history[i]))
             smoothed_series = ewma(all_normalized, alpha=alpha)
             components_smoothed[comp_code] = smoothed_series[-1]
         else:

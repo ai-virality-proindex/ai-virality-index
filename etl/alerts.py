@@ -126,8 +126,49 @@ def _check_condition(
     return False, None, ""
 
 
+def _validate_webhook_url(url: str) -> bool:
+    """Validate webhook URL to prevent SSRF attacks."""
+    import ipaddress
+    from urllib.parse import urlparse
+
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        return False
+
+    # Require HTTPS
+    if parsed.scheme != "https":
+        logger.warning(f"Webhook URL rejected: must use HTTPS, got {parsed.scheme}")
+        return False
+
+    hostname = parsed.hostname
+    if not hostname:
+        return False
+
+    # Block localhost and common internal hostnames
+    blocked_hosts = {"localhost", "127.0.0.1", "0.0.0.0", "::1", "metadata.google.internal"}
+    if hostname.lower() in blocked_hosts:
+        logger.warning(f"Webhook URL rejected: blocked host {hostname}")
+        return False
+
+    # Block private/reserved IP ranges
+    try:
+        ip = ipaddress.ip_address(hostname)
+        if ip.is_private or ip.is_reserved or ip.is_loopback or ip.is_link_local:
+            logger.warning(f"Webhook URL rejected: private/reserved IP {hostname}")
+            return False
+    except ValueError:
+        pass  # hostname is a domain name, not an IP — OK
+
+    return True
+
+
 def _send_webhook(url: str, payload: dict) -> bool:
     """Send alert payload to a webhook URL."""
+    if not _validate_webhook_url(url):
+        logger.error(f"Webhook URL validation failed: {url}")
+        return False
+
     try:
         response = httpx.post(
             url,

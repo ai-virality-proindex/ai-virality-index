@@ -65,8 +65,9 @@ export async function POST(request: NextRequest) {
   // Generate key: avi_pk_ + 32 hex chars
   const rawKey = `avi_pk_${crypto.randomBytes(16).toString('hex')}`
 
-  // Store the full key as key_prefix (used for lookup in middleware)
-  // Hash it for secure storage verification
+  // Store only a short prefix for display (NOT the full key)
+  // Store SHA-256 hash for authentication lookup
+  const keyPrefix = rawKey.slice(0, 15) // "avi_pk_" + first 8 hex chars
   const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex')
 
   const admin = createServerClient()
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
     .from('api_keys')
     .insert({
       user_id: user.id,
-      key_prefix: rawKey,
+      key_prefix: keyPrefix,
       key_hash: keyHash,
       name: keyName,
       is_active: true,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   AreaChart,
   Area,
@@ -86,60 +86,62 @@ export default function IndexChart({ data, modelColor, modelName, mode }: IndexC
         </div>
       </div>
 
-      {/* Chart */}
-      <ResponsiveContainer width="100%" height={280}>
-        <AreaChart data={sliced} margin={{ top: 5, right: 10, bottom: 5, left: 0 }}>
-          <defs>
-            <linearGradient id={`chartGrad-${mode}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={lineColor} stopOpacity={0.3} />
-              <stop offset="95%" stopColor={lineColor} stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-          <XAxis
-            dataKey="date"
-            stroke="#475569"
-            fontSize={11}
-            tickFormatter={(d) => {
-              const date = new Date(d)
-              return `${date.getMonth() + 1}/${date.getDate()}`
-            }}
-            interval="preserveStartEnd"
-            minTickGap={40}
-          />
-          <YAxis
-            domain={[yMin, yMax]}
-            stroke="#475569"
-            fontSize={11}
-            width={35}
-          />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: '#1e293b',
-              border: '1px solid #334155',
-              borderRadius: '8px',
-              fontSize: '12px',
-            }}
-            labelStyle={{ color: '#94a3b8' }}
-            itemStyle={{ color: lineColor }}
-            formatter={(value: number) => [value.toFixed(1), mode === 'trade' ? 'Trading' : 'Content']}
-            labelFormatter={(label) => `Date: ${label}`}
-          />
-          {/* Reference lines for zones */}
-          <ReferenceLine y={50} stroke="#334155" strokeDasharray="5 5" />
-          <ReferenceLine y={75} stroke="#334155" strokeDasharray="3 3" />
-          <ReferenceLine y={25} stroke="#334155" strokeDasharray="3 3" />
-          <Area
-            type="monotone"
-            dataKey={dataKey}
-            stroke={lineColor}
-            strokeWidth={2}
-            fill={`url(#chartGrad-${mode})`}
-            dot={false}
-            activeDot={{ r: 4, fill: lineColor }}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+      {/* Chart — wrapped in a div with explicit dimensions for SSR compatibility */}
+      <div style={{ width: '100%', height: 280 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={sliced} margin={{ top: 5, right: 10, bottom: 5, left: 0 }}>
+            <defs>
+              <linearGradient id={`chartGrad-${mode}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={lineColor} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={lineColor} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+            <XAxis
+              dataKey="date"
+              stroke="#475569"
+              fontSize={11}
+              tickFormatter={(d) => {
+                const date = new Date(d)
+                return `${date.getMonth() + 1}/${date.getDate()}`
+              }}
+              interval="preserveStartEnd"
+              minTickGap={40}
+            />
+            <YAxis
+              domain={[yMin, yMax]}
+              stroke="#475569"
+              fontSize={11}
+              width={35}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: '#1e293b',
+                border: '1px solid #334155',
+                borderRadius: '8px',
+                fontSize: '12px',
+              }}
+              labelStyle={{ color: '#94a3b8' }}
+              itemStyle={{ color: lineColor }}
+              formatter={(value: number) => [value.toFixed(1), mode === 'trade' ? 'Trading' : 'Content']}
+              labelFormatter={(label) => `Date: ${label}`}
+            />
+            {/* Reference lines for zones */}
+            <ReferenceLine y={50} stroke="#334155" strokeDasharray="5 5" />
+            <ReferenceLine y={75} stroke="#334155" strokeDasharray="3 3" />
+            <ReferenceLine y={25} stroke="#334155" strokeDasharray="3 3" />
+            <Area
+              type="monotone"
+              dataKey={dataKey}
+              stroke={lineColor}
+              strokeWidth={2}
+              fill={`url(#chartGrad-${mode})`}
+              dot={false}
+              activeDot={{ r: 4, fill: lineColor }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { createServerClient } from '@/lib/supabase'
 import { getIndexColor, getIndexLabel, formatDelta } from '@/lib/utils'
+import IndexGauge from '@/components/IndexGauge'
 import Link from 'next/link'
 
 // --- Types ---
@@ -52,34 +53,6 @@ async function getTopModels(): Promise<DailyScore[]> {
 
 // --- Sub-components ---
 
-function MiniGauge({ value }: { value: number }) {
-  const color = getIndexColor(value)
-  const label = getIndexLabel(value)
-  // SVG semi-circle gauge
-  const angle = (value / 100) * 180 // 0-180 degrees
-  const rad = (angle * Math.PI) / 180
-  const cx = 60, cy = 55, r = 45
-  const x = cx - r * Math.cos(rad)
-  const y = cy - r * Math.sin(rad)
-  // Arc path
-  const largeArc = angle > 90 ? 1 : 0
-  const arcPath = `M ${cx - r} ${cy} A ${r} ${r} 0 ${largeArc} 1 ${x.toFixed(1)} ${y.toFixed(1)}`
-  const bgPath = `M ${cx - r} ${cy} A ${r} ${r} 0 1 1 ${cx + r} ${cy}`
-
-  return (
-    <div className="flex flex-col items-center">
-      <svg width="120" height="70" viewBox="0 0 120 70">
-        {/* Background arc */}
-        <path d={bgPath} fill="none" stroke="#334155" strokeWidth="8" strokeLinecap="round" />
-        {/* Value arc */}
-        <path d={arcPath} fill="none" stroke={color} strokeWidth="8" strokeLinecap="round" />
-      </svg>
-      <span className="text-3xl font-bold text-white -mt-4">{Math.round(value)}</span>
-      <span className="text-xs mt-1" style={{ color }}>{label}</span>
-    </div>
-  )
-}
-
 function ModelRow({ score }: { score: DailyScore }) {
   const m = score.models
   const color = getIndexColor(score.vi_trade)
@@ -129,10 +102,9 @@ export default async function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.08),transparent_70%)]" />
 
         <div className="relative mx-auto max-w-5xl px-6 pt-20 pb-24 text-center">
-          {/* Mini gauge */}
+          {/* Index gauge */}
           <div className="mb-6">
-            <MiniGauge value={avgScore} />
-            <p className="text-xs text-slate-500 mt-1">Market Average</p>
+            <IndexGauge value={avgScore} label="Market Average" size="md" />
           </div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white mb-4 tracking-tight">

@@ -1216,10 +1216,11 @@ Full spec: docs/TECHNICAL_SPEC.md
 | Phase 5: Auth/Payments | 5.1 ✅, 5.2 ✅, 5.3 ✅ | ✅ DONE | Feb 17, 2026 |
 | Phase 6: Polish | 6.1 ✅, 6.2 ✅, 6.3 ✅, 6.4 ✅ | ✅ DONE | Feb 17, 2026 |
 | Phase 7: Launch | Deploy ✅, Cron ✅, Git ✅ | ~IN PROGRESS | Feb 18, 2026 |
+| Phase 8: Verification | 8.1 ✅, 8.2 ✅, 8.3 ✅, 8.4 ✅ | ✅ DONE | Feb 18, 2026 |
 
-**Total tasks: 27**
-**Completed: 27/27**
-**Current: Phase 7 IN PROGRESS — deployed to Vercel, ETL cron active, monitoring data**
+**Total tasks: 31**
+**Completed: 31/31 (Phase 8 complete — all verification tasks done)**
+**Current: Phase 8 DONE — ready for Phase 9+**
 
 ---
 
@@ -1249,3 +1250,6 @@ Full spec: docs/TECHNICAL_SPEC.md
 | 16 | Feb 18, 2026 | Phase 7 launch: gh CLI installed, git push (104 files), 8 GitHub secrets, daily_etl.yml cron (12:00 UTC, first run SUCCESS 3m49s, 49 OK/0 errors/161 metrics), Vercel account+project created, 7 env vars, production deploy LIVE at ai-virality-index.vercel.app. Auto-deploy on push confirmed. All pages verified: landing (score 49), dashboard (7 models, heatmap, sparklines), model detail (ChatGPT 43), compare (3-model chart), pricing, API (/v1/index/latest returns 7 models). Local ETL --skip-fetch OK (7/7 models). | Monitor data 3 days |
 | 17 | Feb 18, 2026 | E2E verification: ETL tests 42/42 OK, web build OK (42 pages), API routes OK (3/3), GH Actions OK (2/2 success), Vercel LIVE. Issues found: ETL dry-run crashed on Supabase 502 (transient), signals table empty, GDELT returning 0 articles, only 3 days of data. | Fix ETL resilience, monitor data |
 | 18 | Feb 18, 2026 | Fixed 3 issues: (1) ETL resilience — get_aliases() retry 3x + try/except in main.py loop, (2) GDELT — parenthesized OR queries, 72h window, 6s delay, (3) Signal thresholds — adaptive based on data history. All verified: 42/42 tests, dry-run OK, build OK. | Push to GitHub, monitor next ETL run |
+| 19 | Feb 18, 2026 | Tasks 8.3+8.4: Code Review + TDD. (8.3) Full ETL+Web code review (2 parallel agents). Found 5 Critical + 11 High + 16 Medium/Low issues. Fixed 10: Stripe webhook bypass, API key plaintext, open redirect, index normalization (expanding→rolling), duplicated weights, spoofable headers, hardcoded email→is_admin, SSRF protection, upsert plan overwrite, dynamic plan display. (8.4) Wrote 87 new tests: test_index_calculator.py (39 tests: weights, momentum, signal_trade, heat_content, normalize_momentum, calculate_index with mocks), test_signal_detector.py (19 tests: z_score, divergence, breakout, quality_backed), test_alerts.py (29 tests: SSRF validation, condition checking). Total: 129/129 tests pass. Build OK. Phase 8 COMPLETE. | Phase 9+ |
+| 20 | Feb 18, 2026 | Совет Директоров: проверка 30-дневного плана против roadmap. Всё из плана уже в Phases 10-12. Добавлено в roadmap: (1) timestamps на фазы 9-12, (2) Value Ladder визуализация ($0→$7→$29→$99→$499+), (3) журнал Совета Директоров с датой следующего заседания (4 марта), (4) "Следующее обновление" в шапке. | Phase 10: ждём 14 дней данных |
+| 21 | Feb 18, 2026 | UpdateCountdown component: TradingView-style countdown timer showing time until next ETL update (every 6h: 00:00/06:00/12:00/18:00 UTC). Animated pulse dot + HH:MM:SS countdown. Two variants: compact (dashboard header) and full (model detail scores card). Added to DashboardView + ModelDetailView. Build OK. | UX polish |

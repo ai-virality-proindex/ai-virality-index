@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 import { createMiddlewareClient } from './lib/supabase-middleware'
+import crypto from 'crypto'
 
 // Rate limiters (lazy-initialized to avoid build-time env access)
 let publicLimiter: Ratelimit | null = null
@@ -49,7 +50,7 @@ function getEnterpriseLimiter() {
 }
 
 async function resolveApiKey(
-  keyPrefix: string
+  rawKey: string
 ): Promise<{ plan: string; userId: string } | null> {
   const { createClient } = await import('@supabase/supabase-js')
   const supabase = createClient(
@@ -57,10 +58,13 @@ async function resolveApiKey(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
+  // Look up by SHA-256 hash of the full key (not plaintext)
+  const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex')
+
   const { data: keyRow, error } = await supabase
     .from('api_keys')
     .select('id, user_id, is_active')
-    .eq('key_prefix', keyPrefix)
+    .eq('key_hash', keyHash)
     .eq('is_active', true)
     .single()
 
@@ -85,6 +89,11 @@ async function resolveApiKey(
 
 // ---- API rate limiting logic (for /api/v1/* routes) ----
 async function handleApiRoute(request: NextRequest): Promise<NextResponse> {
+  // Strip any incoming plan/user headers to prevent spoofing
+  const headers = new Headers(request.headers)
+  headers.delete('x-user-plan')
+  headers.delete('x-user-id')
+
   const authHeader = request.headers.get('authorization')
   let apiKeyPrefix: string | null = null
   let plan = 'free'
@@ -93,7 +102,7 @@ async function handleApiRoute(request: NextRequest): Promise<NextResponse> {
   if (authHeader?.startsWith('Bearer avi_pk_')) {
     apiKeyPrefix = authHeader.replace('Bearer ', '')
 
-    const keyInfo = await resolveApiKey(apiKeyPrefix)
+    const keyInfo = await resolveApiKey(apiKeyPrefix) // resolveApiKey hashes internally
     if (!keyInfo) {
       return NextResponse.json(
         { error: { code: 'UNAUTHORIZED', message: 'Invalid API key' } },
@@ -156,14 +165,16 @@ async function handleApiRoute(request: NextRequest): Promise<NextResponse> {
     )
   }
 
-  const response = NextResponse.next()
+  const response = NextResponse.next({
+    request: { headers },
+  })
   response.headers.set('X-RateLimit-Limit', limit.toString())
   response.headers.set('X-RateLimit-Remaining', remaining.toString())
   response.headers.set('X-RateLimit-Reset', reset.toString())
 
   if (plan !== 'free') {
-    response.headers.set('X-User-Plan', plan)
-    response.headers.set('X-User-Id', userId ?? '')
+    headers.set('x-user-plan', plan)
+    headers.set('x-user-id', userId ?? '')
   }
 
   return response

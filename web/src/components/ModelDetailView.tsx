@@ -5,6 +5,7 @@ import IndexGauge from './IndexGauge'
 import IndexChart from './IndexChart'
 import BreakdownRadar from './BreakdownRadar'
 import ModeToggle from './ModeToggle'
+import UpdateCountdown from './UpdateCountdown'
 import { getIndexColor, formatDelta } from '@/lib/utils'
 
 interface HistoryPoint {
@@ -164,9 +165,8 @@ export default function ModelDetailView({
                     {latestScore.vi_content.toFixed(1)}
                   </span>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-avi-border">
-                  <span className="text-sm text-slate-400">Last Updated</span>
-                  <span className="text-sm text-slate-300">{latestScore.date}</span>
+                <div className="pt-2 border-t border-avi-border">
+                  <UpdateCountdown lastDate={latestScore.date} variant="full" />
                 </div>
               </div>
             </div>

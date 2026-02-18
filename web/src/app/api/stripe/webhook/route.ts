@@ -15,7 +15,31 @@ export async function POST(request: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
   let event: Stripe.Event
 
-  if (webhookSecret && sig) {
+  if (!webhookSecret) {
+    // In production, refuse to process unverified webhooks
+    if (process.env.NODE_ENV === 'production') {
+      console.error('STRIPE_WEBHOOK_SECRET is not set. Refusing to process webhook in production.')
+      return NextResponse.json(
+        { error: { code: 'SERVER_ERROR', message: 'Webhook not configured' } },
+        { status: 500 }
+      )
+    }
+    // Development only: parse without verification
+    try {
+      event = JSON.parse(body) as Stripe.Event
+    } catch {
+      return NextResponse.json(
+        { error: { code: 'WEBHOOK_ERROR', message: 'Invalid JSON' } },
+        { status: 400 }
+      )
+    }
+  } else {
+    if (!sig) {
+      return NextResponse.json(
+        { error: { code: 'WEBHOOK_ERROR', message: 'Missing stripe-signature header' } },
+        { status: 400 }
+      )
+    }
     try {
       event = stripe.webhooks.constructEvent(body, sig, webhookSecret)
     } catch (err) {
@@ -23,16 +47,6 @@ export async function POST(request: NextRequest) {
       console.error('Webhook signature verification failed:', message)
       return NextResponse.json(
         { error: { code: 'WEBHOOK_ERROR', message: `Signature verification failed: ${message}` } },
-        { status: 400 }
-      )
-    }
-  } else {
-    // No webhook secret configured — parse event directly (development only)
-    try {
-      event = JSON.parse(body) as Stripe.Event
-    } catch {
-      return NextResponse.json(
-        { error: { code: 'WEBHOOK_ERROR', message: 'Invalid JSON' } },
         { status: 400 }
       )
     }

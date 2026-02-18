@@ -169,7 +169,17 @@
     <div class="container">
         <h1>AI Virality Index</h1>
         <p class="subtitle">Roadmap: от идеи до запуска</p>
-        <p class="last-updated">Последнее обновление: 18 февраля 2026</p>
+        <p class="last-updated">Последнее обновление: 18 февраля 2026 | Следующее обновление: 4 марта 2026</p>
+
+        <!-- Milestone: Idea → Launch DONE -->
+        <div style="background: linear-gradient(135deg, #064e3b, #0f4c3a); border: 2px solid #10b981; border-radius: 16px; padding: 20px 28px; margin-bottom: 24px; text-align: center;">
+            <div style="font-size: 1.6em; margin-bottom: 6px;">&#127942;</div>
+            <h2 style="color: #10b981; font-size: 1.3em; margin-bottom: 8px;">От идеи до запуска — ГОТОВО</h2>
+            <p style="color: #a7f3d0; font-size: 0.95em; line-height: 1.6;">
+                Продукт запущен и работает: сайт на Vercel, ETL каждые 6 часов, 7 источников данных, 7 AI-моделей.<br>
+                <span style="color: #fbbf24;">16 фев</span> начало &rarr; <span style="color: #fbbf24;">18 фев</span> запуск = <strong style="color: white;">3 дня от нуля до живого продукта</strong>
+            </p>
+        </div>
 
         <div class="legend">
             <div class="legend-item"><div class="legend-dot green"></div> Сделано</div>
@@ -181,11 +191,11 @@
         <div class="overall-progress">
             <h2>Общий прогресс</h2>
             <div class="progress-bar-outer">
-                <div class="progress-bar-inner" style="width: 85%;">85%</div>
+                <div class="progress-bar-inner" style="width: 58%;">58%</div>
             </div>
             <div class="progress-stats">
-                <span>Выполнено задач: 29 из 35</span>
-                <span>Phase 7 из 9 — Аудит впереди</span>
+                <span>Выполнено задач: 42 из 72</span>
+                <span>Phase 8 из 12 — Аудит: DONE (129 тестов, 10 security fixes)</span>
             </div>
         </div>
 
@@ -214,7 +224,7 @@
                         <li class="task-done"><span class="task-icon">&#10003;</span> Установить Python 3.11 + Node.js 24</li>
                         <li class="task-done"><span class="task-icon">&#10003;</span> Инициализировать проект (ETL на Python + Web на Next.js)</li>
                         <li class="task-done"><span class="task-icon">&#10003;</span> Создать схему базы данных (8 таблиц) и загрузить в Supabase</li>
-                        <li class="task-done"><span class="task-icon">&#10003;</span> Заполнить справочник моделей (7 моделей, 60 алиасов)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> Заполнить справочник моделей (7 моделей, 74 алиаса)</li>
                     </ul>
                     <p class="phase-time">Завершено: 16 февраля 2026</p>
                 </div>
@@ -486,7 +496,7 @@ RULES:
             <!-- ==================== PHASE 6 ==================== -->
             <div class="phase">
                 <div class="phase-dot done"></div>
-                <div class="phase-card">
+                <div class="phase-card done">
                     <div class="phase-header">
                         <span class="phase-title">Phase 6: Полировка</span>
                         <span class="phase-badge badge-done">Готово</span>
@@ -496,9 +506,9 @@ RULES:
                         <li class="task-done"><span class="task-icon">&#10003;</span> 6.1 — Система алертов (email/webhook при сигналах)</li>
                         <li class="task-done"><span class="task-icon">&#10003;</span> 6.2 — Встраиваемый виджет (iframe для сайтов)</li>
                         <li class="task-done"><span class="task-icon">&#10003;</span> 6.3 — Страница документации API</li>
-                        <li class="task-done"><span class="task-icon">&#10003;</span> 6.4 — SEO, OG-теги, Sentry, 404, скелетоны</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 6.4 — SEO, OG-теги, 404 страница (Sentry — заглушка, скелетоны — нет)</li>
                     </ul>
-                    <p class="phase-time">Оценка: 3-5 дней</p>
+                    <p class="phase-time">Завершено: 17 февраля 2026</p>
 
                     <div class="prompt-section">
                         <button class="prompt-toggle" onclick="togglePrompt(this)">
@@ -548,7 +558,7 @@ RULES:
                         <li class="task-done"><span class="task-icon">&#10003;</span> Верификация данных (7 моделей, 161 метрика/запуск, 0 ошибок)</li>
                         <li class="task-done"><span class="task-icon">&#10003;</span> E2E верификация (тесты 42/42, build OK, API OK, Vercel OK)</li>
                         <li class="task-done"><span class="task-icon">&#10003;</span> Фикс ETL: resilience (502 retry), GDELT (OR query), сигналы (адаптивные пороги)</li>
-                        <li class="task-active"><span class="task-icon">&#9679;</span> 3 дня мониторинга данных (день 2 из 3)</li>
+                        <li class="task-active"><span class="task-icon">&#9679;</span> 3 дня мониторинга данных (день 1 из 3, старт 18 фев)</li>
                         <li class="task-future"><span class="task-icon">&#9675;</span> Подключить домен (Vercel + Cloudflare)</li>
                         <li class="task-future"><span class="task-icon">&#9675;</span> Переключить Stripe на live-режим</li>
                         <li class="task-future"><span class="task-icon">&#9675;</span> Запустить на Product Hunt</li>
@@ -588,18 +598,18 @@ RULES:
 
             <!-- ==================== PHASE 8 ==================== -->
             <div class="phase">
-                <div class="phase-dot future"></div>
-                <div class="phase-card future">
+                <div class="phase-dot done"></div>
+                <div class="phase-card done">
                     <div class="phase-header">
                         <span class="phase-title">Phase 8: Аудит и тестирование</span>
-                        <span class="phase-badge badge-future">Впереди</span>
+                        <span class="phase-badge badge-done">Готово</span>
                     </div>
                     <p class="phase-desc">Верификация всего проекта end-to-end, поиск багов, код-ревью, написание тестов (используем Superpowers)</p>
                     <ul class="tasks-list">
-                        <li class="task-future"><span class="task-icon">&#9675;</span> 8.1 — Верификация: проверить что всё работает end-to-end</li>
-                        <li class="task-future"><span class="task-icon">&#9675;</span> 8.2 — Дебаг: найти и исправить все ошибки</li>
-                        <li class="task-future"><span class="task-icon">&#9675;</span> 8.3 — Код-ревью: полный аудит ETL + Web</li>
-                        <li class="task-future"><span class="task-icon">&#9675;</span> 8.4 — TDD: написать тесты для непокрытых модулей</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 8.1 — Верификация E2E (выполнено как Task 7.2: тесты, build, API, Supabase, GH Actions, Vercel)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 8.2 — Дебаг (выполнено как Task 7.3: ETL resilience, GDELT fix, сигналы fix)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 8.3 — Код-ревью: полный аудит ETL + Web (5 Critical + 11 High найдено и исправлено)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 8.4 — TDD: 87 новых тестов (index_calculator, signal_detector, alerts). 129/129 pass</li>
                     </ul>
                     <p class="phase-time">Оценка: 2-3 дня</p>
 
@@ -731,7 +741,7 @@ Web (TypeScript):
                         <span class="phase-title">Phase 9: Улучшения и новые источники</span>
                         <span class="phase-badge badge-future">Впереди</span>
                     </div>
-                    <p class="phase-desc">Анализ формулы индекса, добавление новых источников данных (Crunchbase, X/Twitter), план масштабирования</p>
+                    <p class="phase-desc">Анализ формулы индекса, добавление новых источников данных (Crunchbase, X/Twitter), план масштабирования. <strong style="color: #f59e0b;">Старт: 5 марта 2026</strong></p>
                     <ul class="tasks-list">
                         <li class="task-future"><span class="task-icon">&#9675;</span> 9.1 — Брейншторм: новые источники данных (Crunchbase, X, ProductHunt)</li>
                         <li class="task-future"><span class="task-icon">&#9675;</span> 9.2 — План улучшений: веса формулы, качество данных, UX</li>
@@ -799,18 +809,646 @@ Content: 0.28*T + 0.32*S + 0.08*G + 0.20*N + 0.05*Q + 0.07*M</pre>
                 </div>
             </div>
 
+            <!-- ==================== PHASE 10 ==================== -->
+            <div class="phase">
+                <div class="phase-dot future"></div>
+                <div class="phase-card future" style="border-color: #ef4444 !important; opacity: 1 !important;">
+                    <div class="phase-header">
+                        <span class="phase-title">&#128293; Phase 10: Валидация индекса (КРИТИЧНО)</span>
+                        <span class="phase-badge" style="background: #7f1d1d; color: #fca5a5;">Приоритет #1</span>
+                    </div>
+                    <p class="phase-desc">Без подтверждения что индекс работает и имеет ценность — всё остальное бессмысленно. Бэктест на исторических событиях, проверка корреляций, сбор 14 дней данных. <strong style="color: #ef4444;">Старт: 19 февраля 2026 (ждём 14 дней данных до 2 марта)</strong></p>
+                    <ul class="tasks-list">
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 10.1 — Собрать 14 дней непрерывных данных (ETL без сбоев)</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 10.2 — Бэктест: проверить индекс на известных событиях (DeepSeek R1, GPT-4o, Gemini 2.0)</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 10.3 — Корреляция: сравнить VI с Polymarket odds (лаг 24-48ч?)</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 10.4 — Стресс-тест: что показывает индекс при "тишине" vs "шторме"?</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 10.5 — Калибровка весов: скорректировать формулу по реальным данным</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 10.6 — Написать "Methodology" (whitepaper: что, зачем, как считается)</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 10.7 — Создать 3 кейса: "AVI предсказал X за Y дней до рынка"</li>
+                    </ul>
+                    <p class="phase-time">Оценка: 14-21 дней (нужно время для накопления данных)</p>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> 10.1-10.2 — Сбор данных + Бэктест
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>I'm building the AI Virality Index project.
+Project path: E:\2026\AI Virality Index\ai-virality-index\
+
+Phase 0-7 DONE: Full product built and deployed (ETL, API, dashboard, auth, Stripe, alerts)
+Live at: ai-virality-index.vercel.app
+ETL runs every 6h via GitHub Actions
+
+Phase 10 — INDEX VALIDATION (most critical phase)
+
+Task 10.1: Check data continuity
+- Query Supabase: SELECT date, COUNT(*) FROM daily_scores GROUP BY date ORDER BY date
+- Verify: are there gaps? Missing models? Missing days?
+- Check raw_metrics: how many metrics per day per model?
+- Goal: 14+ days of continuous, complete data
+
+Task 10.2: Backtest against known events
+Research these historical AI events and check if our index captured them:
+- DeepSeek R1 launch (Jan 20, 2025) — did VI spike for deepseek?
+- GPT-4o launch (May 2024) — did chatgpt VI surge?
+- Gemini 2.0 announcement (Dec 2024) — gemini spike?
+- Claude 3.5 Sonnet (Jun 2024) — claude spike?
+
+For each event:
+1. Query daily_scores around that date (+/- 7 days)
+2. Show the VI_trade and delta7_trade
+3. Compare with Google Trends data for same period
+4. Did our index detect the event BEFORE or AFTER mainstream?
+
+Python: C:/Users/Alexe/AppData/Local/Programs/Python/Python311/python.exe
+Read @E:\2026\AI Virality Index\ai-virality-index\docs\TECHNICAL_SPEC.md
+Read @E:\2026\AI Virality Index\ai-virality-index\etl\processing\index_calculator.py
+
+RULES:
+1. After each task - update PROMPTS_AND_CHECKLIST.md
+2. After each task - update docs/roadmap.html
+3. When context runs low - give RESUME PROMPT</pre>
+                            <p class="prompt-hint">Самый важный шаг — убедиться что индекс ловит реальные события</p>
+                        </div>
+                    </div>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> 10.3-10.4 — Корреляция с Polymarket + Стресс-тест
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>I'm building the AI Virality Index project.
+Project path: E:\2026\AI Virality Index\ai-virality-index\
+
+Phase 10 IN PROGRESS — INDEX VALIDATION
+Task 10.1 ✅: 14 days of continuous data collected
+Task 10.2 ✅: Backtest completed on historical events
+
+NOW: Task 10.3 — Polymarket Correlation Analysis
+1. Query daily_scores for all models, last 14 days
+2. Query raw_metrics WHERE source='polymarket' — get market odds over time
+3. Calculate: Pearson correlation between VI_trade and polymarket_odds
+4. Key question: does VI LEAD polymarket by 24-48h?
+   - Shift VI by 1 day, 2 days — does correlation increase?
+   - This is the CORE value prop for traders
+5. Create scatter plot: VI vs Polymarket odds (matplotlib or notebook)
+6. Document findings
+
+Task 10.4 — Stress Test
+1. Find days where ALL models had low VI (&lt;30) — "quiet market"
+2. Find days where ANY model had VI &gt;80 — "storm"
+3. Check: is the index discriminating? Or do all models cluster around 50?
+4. Check: what's the range? If VI for all models is 45-55, the index is useless
+5. Check component_breakdown: which components drive the most variance?
+
+Python: C:/Users/Alexe/AppData/Local/Programs/Python/Python311/python.exe
+
+RULES:
+1. After each task - update PROMPTS_AND_CHECKLIST.md
+2. After each task - update docs/roadmap.html
+3. When context runs low - give RESUME PROMPT</pre>
+                            <p class="prompt-hint">Проверяем: индекс предсказывает рынок или просто шум?</p>
+                        </div>
+                    </div>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> 10.5-10.7 — Калибровка + Методология + Кейсы
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>I'm building the AI Virality Index project.
+Project path: E:\2026\AI Virality Index\ai-virality-index\
+
+Phase 10 IN PROGRESS — INDEX VALIDATION
+Tasks 10.1-10.4 DONE (data collected, backtest passed, correlation analyzed)
+
+NOW: Task 10.5 — Weight Calibration
+Based on backtest + correlation results:
+1. Read etl/processing/index_calculator.py — current weights
+2. Analyze: which components had highest predictive power?
+3. If Trading mode: does increasing Q (quality) weight improve Polymarket correlation?
+4. If Content mode: does increasing S (social) weight better predict YouTube views?
+5. Propose new weights, test on historical data
+6. If better → update index_calculator.py, document change
+
+Task 10.6 — Write Methodology Page
+Create web/src/app/methodology/page.tsx:
+- What AVI measures (virality, not quality)
+- 6 components explained with examples
+- Normalization method (quantile + EWMA)
+- Two modes explained (Trading vs Content)
+- Data freshness and update schedule
+- Limitations and disclaimers
+
+Task 10.7 — Create 3 Case Studies
+For the 3 best backtest results, write mini case studies:
+- "On [date], AVI detected [model] surge 48h before Polymarket moved"
+- Include charts/screenshots from dashboard
+- These go on landing page as social proof
+
+Python: C:/Users/Alexe/AppData/Local/Programs/Python/Python311/python.exe
+
+RULES:
+1. After each task - update PROMPTS_AND_CHECKLIST.md
+2. After each task - update docs/roadmap.html
+3. When context runs low - give RESUME PROMPT</pre>
+                            <p class="prompt-hint">Финализация валидации — теперь можно продавать с доказательствами</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== PHASE 11 ==================== -->
+            <div class="phase">
+                <div class="phase-dot future"></div>
+                <div class="phase-card future">
+                    <div class="phase-header">
+                        <span class="phase-title">Phase 11: Починка воронки и UX</span>
+                        <span class="phase-badge badge-future">Впереди</span>
+                    </div>
+                    <p class="phase-desc">Убрать блокеры конверсии: login wall, мёртвые ссылки, отсутствие аналитики, broken AuthButton. По фреймворкам Brunson (Value Ladder), Warrillow (10x value), Heyward (Emotional territory). <strong style="color: #f59e0b;">Старт: параллельно с Phase 10 (19 февраля 2026)</strong></p>
+                    <ul class="tasks-list">
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 11.1 — Аналитика: GA4 + Microsoft Clarity + conversion events</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 11.2 — Убрать login wall: дашборд доступен без регистрации (delayed data)</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 11.3 — Починить AuthButton (показывать реальный план из user_profiles)</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 11.4 — Contextual upsell banners ("Data 1d old → Get real-time")</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 11.5 — Post-checkout Welcome page + onboarding tour (3 шага)</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 11.6 — Переписать CTA: "Stop guessing. Start knowing." (Inception formula)</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 11.7 — Добавить годовые планы + 7-day free trial</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 11.8 — Enterprise: форма контакта вместо тупика</li>
+                    </ul>
+                    <p class="phase-time">Оценка: 5-7 дней</p>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> 11.1-11.4 — Аналитика + Login wall + UX фиксы
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>I'm building the AI Virality Index project.
+Project path: E:\2026\AI Virality Index\ai-virality-index\
+
+Phase 0-10 DONE: product built, deployed, INDEX VALIDATED
+Live at: ai-virality-index.vercel.app
+
+Phase 11 — FIX CONVERSION FUNNEL
+
+Task 11.1 — Add Analytics
+- Add Google Analytics 4 to web/src/app/layout.tsx (use GA_MEASUREMENT_ID env var)
+- Add Microsoft Clarity (free heatmaps) — script tag in layout
+- Add conversion events: pricing_viewed, checkout_started, checkout_completed, signup_completed
+- Add to .env.local: NEXT_PUBLIC_GA_ID, NEXT_PUBLIC_CLARITY_ID
+
+Task 11.2 — Remove Login Wall from Dashboard
+- Currently web/src/app/dashboard/page.tsx requires auth
+- Change: show dashboard WITHOUT login, with 1-day delayed data
+- Add banner at top: "You're viewing delayed data. Sign up free for real-time →"
+- If user is logged in: show real-time (or full data depending on plan)
+- Key: anonymous users see value BEFORE being asked to sign up
+
+Task 11.3 — Fix AuthButton
+- File: web/src/components/AuthButton.tsx line 70
+- Currently hardcodes "Free plan" — must fetch from user_profiles.plan
+- Show: "Free", "Pro Trader", "Pro Builder" with colored badge
+
+Task 11.4 — Add Contextual Upsell Banners
+- On dashboard (for free users): "Data is 1 day old. Upgrade for real-time →"
+- On /models/[slug]: "Component breakdown available for Pro users →"
+- On /compare: "Full comparison with signals — Pro feature →"
+- Style: subtle, not popup. Inline banner, emerald border, dismiss button.
+
+Python: C:/Users/Alexe/AppData/Local/Programs/Python/Python311/python.exe
+Node: C:/Program Files/nodejs/
+
+RULES:
+1. After each task - update PROMPTS_AND_CHECKLIST.md
+2. After each task - update docs/roadmap.html
+3. When context runs low - give RESUME PROMPT</pre>
+                            <p class="prompt-hint">Критические фиксы конверсии — каждый день без этого = потерянные пользователи</p>
+                        </div>
+                    </div>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> 11.5-11.8 — Onboarding + CTA + Pricing + Enterprise
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>I'm building the AI Virality Index project.
+Project path: E:\2026\AI Virality Index\ai-virality-index\
+
+Phase 11 IN PROGRESS — FIX CONVERSION FUNNEL
+Tasks 11.1-11.4 DONE (analytics, login wall removed, AuthButton fixed, upsell banners)
+
+NOW: Task 11.5 — Post-checkout Welcome + Onboarding
+- Create /dashboard?welcome=true flow
+- Modal with 3 steps: (1) Market Average gauge, (2) Heatmap explanation, (3) Mode toggle
+- "Skip Tour" button on each step
+- After checkout success: redirect to /dashboard?welcome=true&amp;plan=pro_trader
+- localStorage flag: onboarding_completed = true
+
+Task 11.6 — Rewrite CTAs (Inception Formula)
+Apply emotional CTAs from NotebookLM framework:
+- Hero: "Stop guessing which AI is hot. Start knowing."
+- Free CTA: "See what's trending now" (not "Get Started")
+- Pro CTA: "Get signals before the market moves" (not "Subscribe")
+- Pricing headline: "For teams that can't afford to guess"
+
+Task 11.7 — Annual Plans + Free Trial
+- Add annual pricing: $249/yr Trader (28% off), $899/yr Builder (25% off)
+- Add 7-day free trial for Pro Trader (Stripe trial_period_days)
+- Update pricing page, Stripe checkout, webhook handler
+
+Task 11.8 — Enterprise Contact Form
+- Replace dead "Contact us" link with real form
+- Simple: name, email, company, message
+- POST to /api/contact → sends email notification (or save to Supabase)
+- Or: Calendly embed link
+
+Read web/src/app/pricing/page.tsx, web/src/lib/stripe.ts, web/src/app/page.tsx
+
+RULES:
+1. After each task - update PROMPTS_AND_CHECKLIST.md
+2. After each task - update docs/roadmap.html
+3. When context runs low - give RESUME PROMPT</pre>
+                            <p class="prompt-hint">Вторая волна: onboarding, эмоциональные CTA, годовые планы</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== PHASE 12 ==================== -->
+            <div class="phase">
+                <div class="phase-dot future"></div>
+                <div class="phase-card future">
+                    <div class="phase-header">
+                        <span class="phase-title">Phase 12: GTM — Выход на рынок</span>
+                        <span class="phase-badge badge-future">Впереди</span>
+                    </div>
+                    <p class="phase-desc">Go-to-market: newsletter, ProductHunt, Twitter, outbound к трейдерам, social proof, viral loops. По фреймворкам Moran (Stack the Deck), Brunson (Attractive Character), Warrillow (10x value). <strong style="color: #10b981;">Старт: после Phase 10 (~5 марта 2026)</strong></p>
+                    <ul class="tasks-list">
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 12.1 — Email-рассылка: Beehiiv/ConvertKit + CTA на лендинге и дашборде</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 12.2 — Outbound: найти 100 Polymarket трейдеров, написать персональные письма</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 12.3 — Контент: блог на /blog (weekly "AI Virality Report")</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 12.4 — Twitter/X: аккаунт + daily auto-post "Top Movers" + launch thread</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 12.5 — ProductHunt: подготовка + launch day + мобилизация hot list</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 12.6 — Show HN + Reddit r/artificial + LinkedIn пост</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 12.7 — Viral loops: share buttons, embed badge promotion, referral</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 12.8 — Frontend product: $7 Weekly Virality Report (PDF via Stripe)</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 12.9 — Weekly email digest: "AI Virality Weekly" (автоматическая)</li>
+                    </ul>
+                    <p class="phase-time">Оценка: 14-21 дней (непрерывный процесс)</p>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> 12.1-12.3 — Newsletter + Outbound + Blog
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>I'm building the AI Virality Index project.
+Project path: E:\2026\AI Virality Index\ai-virality-index\
+
+Phase 0-11 DONE: product built, index validated, funnel fixed
+Live at: ai-virality-index.vercel.app
+
+Phase 12 — GO TO MARKET
+
+Task 12.1 — Newsletter Setup
+- Set up Beehiiv (free tier, 2500 subscribers) or ConvertKit
+- Add email capture form to:
+  - Landing page (after Live Index section)
+  - Dashboard (sidebar or banner: "Get weekly AI virality digest")
+  - Pricing page (footer)
+- Capture: email only (no name needed for minimal friction)
+- Welcome email: "Welcome to AVI. Here's what happened this week in AI virality..."
+
+Task 12.2 — Outbound to Polymarket Traders
+- Find 100 active Polymarket traders who trade AI markets
+- Sources: Polymarket leaderboards, Twitter/X "#polymarket AI", Discord servers
+- Write personalized template (3 variants, A/B test):
+  Template A: "I built a tool that tracks AI model virality before Polymarket odds move..."
+  Template B: "Last week our index flagged [model] 48h before the market — want access?"
+  Template C: "[Name], I noticed you trade AI markets on Polymarket. Quick question..."
+- Send via personal email (not bulk), 20/day
+- Track responses in simple spreadsheet
+
+Task 12.3 — Blog Setup
+- Create web/src/app/blog/page.tsx (list) + web/src/app/blog/[slug]/page.tsx (post)
+- Content stored as MDX or in Supabase
+- First 3 posts:
+  1. "What is AI Virality Index? The Fear &amp; Greed Index for AI Models"
+  2. "How We Predicted [Model] Surge 48h Before the Market" (from Phase 10 case study)
+  3. "AI Virality Weekly Report — Feb 2026"
+- SEO: each post targets long-tail keywords
+
+Read web/src/app/page.tsx for design consistency
+
+RULES:
+1. After each task - update PROMPTS_AND_CHECKLIST.md
+2. After each task - update docs/roadmap.html
+3. When context runs low - give RESUME PROMPT</pre>
+                            <p class="prompt-hint">Первые 3 канала роста: newsletter, outbound, content</p>
+                        </div>
+                    </div>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> 12.4-12.6 — Twitter + ProductHunt + HN Launch
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>I'm building the AI Virality Index project.
+Project path: E:\2026\AI Virality Index\ai-virality-index\
+
+Phase 12 IN PROGRESS — GO TO MARKET
+Tasks 12.1-12.3 DONE (newsletter, outbound started, blog live)
+
+NOW: Task 12.4 — Twitter/X Setup
+- Create @AIViralityIndex account
+- Bio: "The Fear &amp; Greed Index for AI Models. 7 models, 6 data sources, updated daily."
+- Pin tweet: launch thread (10 tweets explaining AVI + link)
+- Daily auto-post: "📊 AI Virality Top Movers — [date]: [model] ↑[delta] | [model] ↓[delta]"
+  (Can be manual first, automate later with GitHub Actions + Twitter API)
+- Engage: follow AI traders, Polymarket influencers, AI newsletter operators
+
+Task 12.5 — ProductHunt Launch
+PRE-LAUNCH (1 week before):
+- Create PH maker profile
+- Prepare assets: logo, screenshots (dashboard, heatmap, model page), GIF demo
+- Write first comment (founder comment): personal story + what AVI does + link
+- Mobilize hot list: 20+ supporters who will upvote + comment on launch day
+- Tagline: "The Fear &amp; Greed Index for AI Models"
+- Topics: Artificial Intelligence, Data Analytics, Developer Tools
+
+LAUNCH DAY:
+- Post at 12:01 AM PST (PH resets)
+- First comment immediately
+- Share link to hot list via DM
+- Post on Twitter, LinkedIn, all channels
+- Monitor comments, respond to every one
+- Target: 100+ upvotes, Top 10 of the day
+
+Task 12.6 — Show HN + Reddit + LinkedIn
+Show HN post:
+- Title: "Show HN: AI Virality Index – The Fear and Greed Index for AI Models"
+- Body: what it is, how it works, what's free, link, ask for feedback
+- Post Tuesday/Wednesday 9am EST (best HN timing)
+
+Reddit r/artificial + r/machinelearning:
+- Title: "I built a Fear &amp; Greed Index for AI models (free dashboard)"
+- Include screenshot, explain methodology briefly
+- Don't be salesy, ask for feedback
+
+LinkedIn:
+- Personal post from founder account
+- "3 days ago I started building something. Today it's live..."
+- Storytelling format, include screenshot
+
+RULES:
+1. After each task - update PROMPTS_AND_CHECKLIST.md
+2. After each task - update docs/roadmap.html
+3. When context runs low - give RESUME PROMPT</pre>
+                            <p class="prompt-hint">Launch day и все каналы дистрибуции</p>
+                        </div>
+                    </div>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> 12.7-12.9 — Viral loops + $7 Report + Weekly digest
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>I'm building the AI Virality Index project.
+Project path: E:\2026\AI Virality Index\ai-virality-index\
+
+Phase 12 IN PROGRESS — GO TO MARKET
+Tasks 12.1-12.6 DONE (newsletter, outbound, blog, Twitter, PH launched, HN/Reddit posted)
+
+NOW: Task 12.7 — Viral Loops
+- Share buttons on /models/[slug]: Twitter, LinkedIn, Copy Link
+- Embed widget promotion: "Add AVI to your site" + copy-paste iframe code
+- "Powered by AI Virality Index" badge for embeds
+- Share card: auto-generate OG image with model score + sparkline
+
+Task 12.8 — Frontend Product: $7 Weekly Report
+Value Ladder step (Brunson): qualify buyers with a cheap product before $29 subscription.
+- Create Jinja2 template for PDF report (4 pages):
+  Page 1: Market Overview (gauge + top 3 movers)
+  Page 2: Model-by-model breakdown (7 models, score + delta + signal)
+  Page 3: Component analysis (which signals drove changes)
+  Page 4: Trading opportunities (divergence from Polymarket)
+- Stripe one-time payment link ($7)
+- Landing page: /report with preview + buy button
+- Generate weekly with ETL data, upload to Supabase Storage
+- After purchase: email PDF + "Want this every week? Subscribe for $29/mo"
+
+Task 12.9 — Automated Weekly Digest Email
+- Every Monday 8am EST: send email to newsletter subscribers
+- Subject: "AI Virality Weekly: [Top Model] at [score] (+[delta])"
+- Content: top 3 movers, biggest signal, one insight, CTA to dashboard
+- Use Beehiiv API or ConvertKit automation
+- Footer: "Want real-time data? Upgrade to Pro →"
+
+RULES:
+1. After each task - update PROMPTS_AND_CHECKLIST.md
+2. After each task - update docs/roadmap.html
+3. When context runs low - give RESUME PROMPT</pre>
+                            <p class="prompt-hint">Retention + Monetization + Viral mechanics</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ==================== GTM PLAN (separate block) ==================== -->
+        <div style="background: linear-gradient(135deg, #1e1b4b, #0f172a); border: 2px solid #8b5cf6; border-radius: 16px; padding: 32px; margin-top: 40px;">
+            <h2 style="color: #a78bfa; font-size: 1.5em; margin-bottom: 8px;">&#128640; ПЛАН ПРОДВИЖЕНИЯ И ВЫХОДА НА РЫНОК</h2>
+            <p style="color: #94a3b8; margin-bottom: 24px;">Отдельная стратегия GTM (Go-to-Market) — запускается ПОСЛЕ Phase 10 (валидация индекса)</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                <div style="background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 16px;">
+                    <h3 style="color: #f59e0b; font-size: 1em; margin-bottom: 8px;">&#128197; Неделя 1-2: Фундамент</h3>
+                    <ul style="color: #cbd5e1; font-size: 0.9em; line-height: 1.8; list-style: none;">
+                        <li>&#9679; GA4 + Clarity (аналитика)</li>
+                        <li>&#9679; Newsletter (Beehiiv)</li>
+                        <li>&#9679; Twitter/X аккаунт</li>
+                        <li>&#9679; Outbound: 50 трейдеров</li>
+                        <li>&#9679; 3 blog-поста</li>
+                    </ul>
+                </div>
+                <div style="background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 16px;">
+                    <h3 style="color: #f59e0b; font-size: 1em; margin-bottom: 8px;">&#128197; Неделя 3-4: Launch</h3>
+                    <ul style="color: #cbd5e1; font-size: 0.9em; line-height: 1.8; list-style: none;">
+                        <li>&#9679; ProductHunt launch day</li>
+                        <li>&#9679; Show HN + Reddit</li>
+                        <li>&#9679; Twitter launch thread</li>
+                        <li>&#9679; LinkedIn personal post</li>
+                        <li>&#9679; $7 Weekly Report</li>
+                    </ul>
+                </div>
+                <div style="background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 16px;">
+                    <h3 style="color: #10b981; font-size: 1em; margin-bottom: 8px;">&#128197; Неделя 5-8: Retention</h3>
+                    <ul style="color: #cbd5e1; font-size: 0.9em; line-height: 1.8; list-style: none;">
+                        <li>&#9679; Weekly email digest</li>
+                        <li>&#9679; Daily Twitter auto-posts</li>
+                        <li>&#9679; Blog: weekly report posts</li>
+                        <li>&#9679; Referral program</li>
+                        <li>&#9679; Embed widget promo</li>
+                    </ul>
+                </div>
+                <div style="background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 16px;">
+                    <h3 style="color: #10b981; font-size: 1em; margin-bottom: 8px;">&#128197; Неделя 9-12: Scale</h3>
+                    <ul style="color: #cbd5e1; font-size: 0.9em; line-height: 1.8; list-style: none;">
+                        <li>&#9679; Partnerships (AI newsletters)</li>
+                        <li>&#9679; YouTube: "AI Model of the Week"</li>
+                        <li>&#9679; SEO: model pages rank</li>
+                        <li>&#9679; Enterprise outbound</li>
+                        <li>&#9679; Affiliate: Polymarket links</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div style="background: #0f172a; border: 1px solid #f59e0b; border-radius: 12px; padding: 20px;">
+                <h3 style="color: #fbbf24; margin-bottom: 12px;">&#127919; KPI по месяцам</h3>
+                <table style="width: 100%; color: #cbd5e1; font-size: 0.9em; border-collapse: collapse;">
+                    <tr style="border-bottom: 1px solid #334155;">
+                        <th style="text-align: left; padding: 8px; color: #94a3b8;">Метрика</th>
+                        <th style="text-align: center; padding: 8px; color: #94a3b8;">Month 1</th>
+                        <th style="text-align: center; padding: 8px; color: #94a3b8;">Month 3</th>
+                        <th style="text-align: center; padding: 8px; color: #94a3b8;">Month 6</th>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #1e293b;">
+                        <td style="padding: 8px;">Email подписчики</td>
+                        <td style="text-align: center; padding: 8px; color: #10b981;">50</td>
+                        <td style="text-align: center; padding: 8px; color: #10b981;">500</td>
+                        <td style="text-align: center; padding: 8px; color: #10b981;">3,000</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #1e293b;">
+                        <td style="padding: 8px;">Платящие подписчики</td>
+                        <td style="text-align: center; padding: 8px; color: #f59e0b;">5</td>
+                        <td style="text-align: center; padding: 8px; color: #f59e0b;">30</td>
+                        <td style="text-align: center; padding: 8px; color: #f59e0b;">200</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #1e293b;">
+                        <td style="padding: 8px;">MRR</td>
+                        <td style="text-align: center; padding: 8px; color: #f59e0b;">$150</td>
+                        <td style="text-align: center; padding: 8px; color: #f59e0b;">$1,500</td>
+                        <td style="text-align: center; padding: 8px; color: #f59e0b;">$8,000</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #1e293b;">
+                        <td style="padding: 8px;">Dashboard DAU</td>
+                        <td style="text-align: center; padding: 8px;">50</td>
+                        <td style="text-align: center; padding: 8px;">500</td>
+                        <td style="text-align: center; padding: 8px;">5,000</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;">Twitter followers</td>
+                        <td style="text-align: center; padding: 8px;">200</td>
+                        <td style="text-align: center; padding: 8px;">2,000</td>
+                        <td style="text-align: center; padding: 8px;">20,000</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Value Ladder (Brunson) -->
+        <div style="background: linear-gradient(135deg, #1a1a2e, #0f172a); border: 2px solid #10b981; border-radius: 16px; padding: 32px; margin-top: 24px;">
+            <h2 style="color: #10b981; font-size: 1.3em; margin-bottom: 16px;">&#128176; VALUE LADDER (Brunson)</h2>
+            <p style="color: #94a3b8; margin-bottom: 20px;">5 ступеней: от бесплатного дашборда до enterprise API. Каждая ступень квалифицирует для следующей.</p>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end;">
+                <div style="flex: 1; min-width: 130px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 14px; text-align: center;">
+                    <div style="color: #64748b; font-size: 0.75em; text-transform: uppercase; margin-bottom: 4px;">Step 1</div>
+                    <div style="color: white; font-size: 1.4em; font-weight: bold;">$0</div>
+                    <div style="color: #94a3b8; font-size: 0.8em; margin-top: 4px;">Free Dashboard</div>
+                    <div style="color: #64748b; font-size: 0.7em; margin-top: 4px;">Data 1d delayed, no signals</div>
+                </div>
+                <div style="color: #334155; font-size: 1.5em; padding-bottom: 30px;">&rarr;</div>
+                <div style="flex: 1; min-width: 130px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 14px; text-align: center;">
+                    <div style="color: #64748b; font-size: 0.75em; text-transform: uppercase; margin-bottom: 4px;">Step 2</div>
+                    <div style="color: #f59e0b; font-size: 1.4em; font-weight: bold;">$7</div>
+                    <div style="color: #94a3b8; font-size: 0.8em; margin-top: 4px;">Weekly Report</div>
+                    <div style="color: #64748b; font-size: 0.7em; margin-top: 4px;">PDF: breakdown + signals</div>
+                </div>
+                <div style="color: #334155; font-size: 1.5em; padding-bottom: 30px;">&rarr;</div>
+                <div style="flex: 1; min-width: 130px; background: #0f172a; border: 1px solid #f59e0b; border-radius: 12px; padding: 14px; text-align: center;">
+                    <div style="color: #f59e0b; font-size: 0.75em; text-transform: uppercase; margin-bottom: 4px;">Step 3</div>
+                    <div style="color: #f59e0b; font-size: 1.4em; font-weight: bold;">$29/mo</div>
+                    <div style="color: #94a3b8; font-size: 0.8em; margin-top: 4px;">Pro Trader</div>
+                    <div style="color: #64748b; font-size: 0.7em; margin-top: 4px;">Real-time + API + signals</div>
+                </div>
+                <div style="color: #334155; font-size: 1.5em; padding-bottom: 30px;">&rarr;</div>
+                <div style="flex: 1; min-width: 130px; background: #0f172a; border: 1px solid #10b981; border-radius: 12px; padding: 14px; text-align: center;">
+                    <div style="color: #10b981; font-size: 0.75em; text-transform: uppercase; margin-bottom: 4px;">Step 4</div>
+                    <div style="color: #10b981; font-size: 1.4em; font-weight: bold;">$99/mo</div>
+                    <div style="color: #94a3b8; font-size: 0.8em; margin-top: 4px;">Pro Builder</div>
+                    <div style="color: #64748b; font-size: 0.7em; margin-top: 4px;">Alerts + webhooks + compare</div>
+                </div>
+                <div style="color: #334155; font-size: 1.5em; padding-bottom: 30px;">&rarr;</div>
+                <div style="flex: 1; min-width: 130px; background: #0f172a; border: 1px solid #8b5cf6; border-radius: 12px; padding: 14px; text-align: center;">
+                    <div style="color: #8b5cf6; font-size: 0.75em; text-transform: uppercase; margin-bottom: 4px;">Step 5</div>
+                    <div style="color: #8b5cf6; font-size: 1.4em; font-weight: bold;">$499+</div>
+                    <div style="color: #94a3b8; font-size: 0.8em; margin-top: 4px;">Enterprise</div>
+                    <div style="color: #64748b; font-size: 0.7em; margin-top: 4px;">Custom API + SLA + white-label</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Strategy block -->
+        <div style="background: linear-gradient(135deg, #1a1a2e, #0f172a); border: 2px solid #f59e0b; border-radius: 16px; padding: 32px; margin-top: 24px;">
+            <h2 style="color: #fbbf24; font-size: 1.3em; margin-bottom: 16px;">&#9889; СТРАТЕГИЯ: 3 ФАЗЫ РОСТА</h2>
+            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px; background: #0f172a; border: 1px solid #dc2626; border-radius: 12px; padding: 16px;">
+                    <h3 style="color: #fca5a5; font-size: 1em;">Phase A: Доказать</h3>
+                    <p style="color: #94a3b8; font-size: 0.85em; margin-top: 8px;">14 дней данных → бэктест → корреляция с Polymarket → 3 кейса. <strong style="color: white;">Без этого нечего продавать.</strong></p>
+                </div>
+                <div style="flex: 1; min-width: 200px; background: #0f172a; border: 1px solid #f59e0b; border-radius: 12px; padding: 16px;">
+                    <h3 style="color: #fbbf24; font-size: 1em;">Phase B: Починить</h3>
+                    <p style="color: #94a3b8; font-size: 0.85em; margin-top: 8px;">Аналитика → login wall → upsells → onboarding → emotional CTA → trial. <strong style="color: white;">Каждый день без этого = потерянные конверсии.</strong></p>
+                </div>
+                <div style="flex: 1; min-width: 200px; background: #0f172a; border: 1px solid #10b981; border-radius: 12px; padding: 16px;">
+                    <h3 style="color: #10b981; font-size: 1em;">Phase C: Масштабировать</h3>
+                    <p style="color: #94a3b8; font-size: 0.85em; margin-top: 8px;">Newsletter → outbound → PH → Twitter → blog → viral loops → weekly digest. <strong style="color: white;">Рост только после A + B.</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Board Meeting Log -->
+        <div style="background: #0f172a; border: 1px solid #475569; border-radius: 16px; padding: 24px 32px; margin-top: 24px;">
+            <h2 style="color: #94a3b8; font-size: 1.1em; margin-bottom: 12px;">&#128221; &#1057;&#1086;&#1074;&#1077;&#1090; &#1044;&#1080;&#1088;&#1077;&#1082;&#1090;&#1086;&#1088;&#1086;&#1074; &mdash; &#1078;&#1091;&#1088;&#1085;&#1072;&#1083;</h2>
+            <table style="width: 100%; color: #cbd5e1; font-size: 0.85em; border-collapse: collapse;">
+                <tr style="border-bottom: 1px solid #334155;">
+                    <th style="text-align: left; padding: 8px; color: #64748b;">&#1044;&#1072;&#1090;&#1072;</th>
+                    <th style="text-align: left; padding: 8px; color: #64748b;">&#1058;&#1077;&#1084;&#1072;</th>
+                    <th style="text-align: left; padding: 8px; color: #64748b;">&#1056;&#1077;&#1096;&#1077;&#1085;&#1080;&#1103;</th>
+                    <th style="text-align: center; padding: 8px; color: #64748b;">&#1057;&#1090;&#1072;&#1090;&#1091;&#1089;</th>
+                </tr>
+                <tr style="border-bottom: 1px solid #1e293b;">
+                    <td style="padding: 8px;">18 &#1092;&#1077;&#1074; 2026</td>
+                    <td style="padding: 8px;">30-&#1076;&#1085;&#1077;&#1074;&#1085;&#1099;&#1081; &#1087;&#1083;&#1072;&#1085; GTM</td>
+                    <td style="padding: 8px;">Value Ladder 5 &#1089;&#1090;&#1091;&#1087;&#1077;&#1085;&#1077;&#1081;, outbound &#1082; &#1090;&#1088;&#1077;&#1081;&#1076;&#1077;&#1088;&#1072;&#1084;, ProductHunt, &#1085;&#1086;&#1074;&#1086;&#1077; &#1087;&#1086;&#1079;&#1080;&#1094;&#1080;&#1086;&#1085;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;</td>
+                    <td style="text-align: center; padding: 8px; color: #10b981;">&#10003; &#1042; roadmap</td>
+                </tr>
+            </table>
+            <p style="color: #64748b; font-size: 0.8em; margin-top: 12px;">&#1057;&#1083;&#1077;&#1076;&#1091;&#1102;&#1097;&#1077;&#1077; &#1079;&#1072;&#1089;&#1077;&#1076;&#1072;&#1085;&#1080;&#1077;: <strong style="color: #f59e0b;">4 &#1084;&#1072;&#1088;&#1090;&#1072; 2026</strong> &mdash; &#1088;&#1077;&#1074;&#1080;&#1079;&#1080;&#1103; &#1087;&#1088;&#1086;&#1075;&#1088;&#1077;&#1089;&#1089;&#1072; Phase 10 + KPI Month 1</p>
         </div>
 
         <!-- Final destination -->
         <div class="destination">
             <h2>Финальная точка</h2>
             <p>
-                Работающий сайт с ежедневно обновляемым индексом виральности AI-моделей.
-                Публичный дашборд + Pro API для трейдеров и контент-мейкеров.
+                Работающий сайт с <strong>доказанным</strong> индексом виральности AI-моделей.
+                Публичный дашборд + Pro API + Weekly Report + активное сообщество.
             </p>
             <p style="margin-top: 16px;">
-                <span class="money">Цель Month 1:</span> 100 DAU, 10 Pro-подписчиков, $300 MRR<br>
-                <span class="money">Цель Month 6:</span> 5000 DAU, 200 Pro-подписчиков, $8000 MRR
+                <span class="money">Цель Month 1:</span> 50 DAU, 5 Pro-подписчиков, $150 MRR, 50 email subs<br>
+                <span class="money">Цель Month 3:</span> 500 DAU, 30 Pro-подписчиков, $1,500 MRR<br>
+                <span class="money">Цель Month 6:</span> 5000 DAU, 200 Pro-подписчиков, $8,000 MRR
             </p>
         </div>
 

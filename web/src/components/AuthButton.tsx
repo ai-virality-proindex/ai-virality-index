@@ -8,6 +8,8 @@ export default function AuthButton() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [userPlan, setUserPlan] = useState('free')
 
   useEffect(() => {
     const supabase = createAuthBrowserClient()
@@ -15,6 +17,19 @@ export default function AuthButton() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user)
       setLoading(false)
+      if (user) {
+        supabase
+          .from('user_profiles')
+          .select('plan, is_admin')
+          .eq('id', user.id)
+          .single()
+          .then(({ data }) => {
+            if (data) {
+              setIsAdmin(data.is_admin === true)
+              setUserPlan(data.plan || 'free')
+            }
+          })
+      }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -67,7 +82,7 @@ export default function AuthButton() {
           <div className="absolute right-0 top-10 z-50 w-56 rounded-lg border border-avi-border bg-avi-card py-2 shadow-xl">
             <div className="border-b border-avi-border px-4 py-2">
               <p className="text-sm text-white truncate">{user.email}</p>
-              <p className="text-xs text-slate-500">Free plan</p>
+              <p className="text-xs text-slate-500">{userPlan === 'free' ? 'Free' : userPlan === 'pro' ? 'Pro' : 'Enterprise'} plan</p>
             </div>
             <a
               href="/dashboard"
@@ -90,7 +105,7 @@ export default function AuthButton() {
             >
               Alerts
             </a>
-            {user.email === 'getdroneservices@gmail.com' && (
+            {isAdmin && (
               <a
                 href="/dashboard/trainer"
                 className="block px-4 py-2 text-sm text-slate-300 hover:bg-avi-dark hover:text-white transition-colors"

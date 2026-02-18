@@ -5,7 +5,9 @@ import { cookies } from 'next/headers'
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/dashboard'
+  const rawNext = searchParams.get('next') ?? '/dashboard'
+  // Prevent open redirect: only allow relative paths
+  const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/dashboard'
 
   if (code) {
     const cookieStore = await cookies()
@@ -47,7 +49,7 @@ export async function GET(request: NextRequest) {
               plan: 'free',
               created_at: new Date().toISOString(),
             },
-            { onConflict: 'id' }
+            { onConflict: 'id', ignoreDuplicates: true }
           )
       }
 
