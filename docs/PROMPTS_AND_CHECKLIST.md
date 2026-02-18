@@ -29,7 +29,7 @@
 - [x] GitHub — repo: ai-virality-proindex/ai-virality-index ✅
 - [x] Supabase — project created, URL + keys in .env ✅
 - [ ] Cloudflare — DEFERRED (before launch)
-- [ ] Vercel — DEFERRED (Phase 4)
+- [x] Vercel — account created, project deployed, LIVE at ai-virality-index.vercel.app ✅
 - [x] Stripe — test mode keys in .env ✅
 - [x] Google Cloud — YouTube Data API v3 enabled, key in .env ✅
 - [ ] Reddit — REJECTED: re-applying with improved description (not blocking, HN used as fallback)
@@ -1219,3 +1219,4 @@ Full spec: docs/TECHNICAL_SPEC.md
 | 14 | Feb 17, 2026 | Task 5.1 done: Supabase Auth — supabase.ts split into 3 files (browser/server/middleware), auth.ts (getUser, requireAuth, requirePro), /login page (magic link + Google OAuth), /auth/callback + /auth/confirm handlers (code exchange + OTP verify + user_profiles upsert), /auth/signout handler, AuthButton component (avatar + dropdown), middleware updated (session refresh + API rate limiting). Build OK (2.16 kB login, 87.5 kB shared). | Phase 5, Task 5.2 |
 | 14 | Feb 17, 2026 | Tasks 5.2+5.3 done: API key management (/api/keys GET/POST/DELETE, /dashboard/keys page with create/list/revoke/copy-to-clipboard, max 5 keys, SHA-256 hash storage). Stripe integration (stripe v20.3.1, stripe.ts helpers with PLANS config + getOrCreatePrice, /api/stripe/checkout + webhook + portal routes, pricing page with 3 tiers + FAQ). Webhook handles checkout.session.completed→pro, subscription.deleted→free. Build OK (29 pages). PHASE 5 COMPLETE. | Phase 6, Task 6.1 |
 | 15 | Feb 17, 2026 | Task 6.1 done: Alerts system — alerts+alert_history tables (Supabase SQL Editor), etl/alerts.py (5 condition types, webhook delivery, alert_history recording), /api/alerts CRUD (GET/POST/PATCH/DELETE, Zod, Pro-only, max 20), /api/alerts/history (last 50), /dashboard/alerts page (create form, active/history tabs, pause/resume/delete), main.py Step 4 (alert checks after signals), AuthButton "Alerts" link. Build OK (3.38 kB alerts page). ETL pipeline tested. | Phase 6, Task 6.2 |
+| 16 | Feb 18, 2026 | Phase 7 launch: gh CLI installed, git push (104 files), 8 GitHub secrets, daily_etl.yml cron (12:00 UTC, first run SUCCESS 3m49s, 49 OK/0 errors/161 metrics), Vercel account+project created, 7 env vars, production deploy LIVE at ai-virality-index.vercel.app. Auto-deploy on push confirmed. All pages verified: landing (score 49), dashboard (7 models, heatmap, sparklines), model detail (ChatGPT 43), compare (3-model chart), pricing, API (/v1/index/latest returns 7 models). Local ETL --skip-fetch OK (7/7 models). | Monitor data 3 days |
