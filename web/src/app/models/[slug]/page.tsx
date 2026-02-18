@@ -125,12 +125,15 @@ async function getModelData(slug: string) {
     M: 'Mindshare',
   }
 
+  // Legacy mapping: Q was renamed to D
+  const mapComp = (c: string) => c === 'Q' ? 'D' : c
+
   // Separate into latest day and previous day
   const byDate: Record<string, Record<string, number>> = {}
   for (const r of (breakdownRaw ?? []) as any[]) {
     if (!byDate[r.date]) byDate[r.date] = {}
     const val = r.smoothed_value != null ? Number(r.smoothed_value) : Number(r.normalized_value)
-    byDate[r.date][r.component] = val
+    byDate[r.date][mapComp(r.component)] = val
   }
   const sortedDates = Object.keys(byDate).sort().reverse() // newest first
   const latestMap = byDate[sortedDates[0]] ?? {}
@@ -140,16 +143,18 @@ async function getModelData(slug: string) {
   const seenComp = new Set<string>()
   const breakdown = (breakdownRaw ?? [])
     .filter((r: any) => {
-      if (seenComp.has(r.component)) return false
-      seenComp.add(r.component)
+      const code = mapComp(r.component)
+      if (seenComp.has(code)) return false
+      seenComp.add(code)
       return true
     })
     .map((r: any) => {
-      const current = latestMap[r.component] ?? 0
-      const prev = prevMap[r.component]
+      const code = mapComp(r.component)
+      const current = latestMap[code] ?? 0
+      const prev = prevMap[code]
       return {
-        component: r.component,
-        label: LABELS[r.component] || r.component,
+        component: code,
+        label: LABELS[code] || code,
         normalized_value: Number(r.normalized_value),
         smoothed_value: r.smoothed_value != null ? Number(r.smoothed_value) : null,
         delta: prev != null ? current - prev : null,

@@ -96,13 +96,19 @@ export async function GET(request: NextRequest) {
       M: 'Mindshare (Wikipedia)',
     }
 
-    const breakdown = (components ?? []).map((c: any) => ({
-      component: c.component,
-      label: componentLabels[c.component] ?? c.component,
-      raw_value: c.raw_value != null ? Number(c.raw_value) : null,
-      normalized: Number(c.normalized_value),
-      smoothed: c.smoothed_value != null ? Number(c.smoothed_value) : null,
-    }))
+    // Legacy mapping: Q was renamed to D
+    const mapComp = (c: string) => c === 'Q' ? 'D' : c
+
+    const breakdown = (components ?? []).map((c: any) => {
+      const code = mapComp(c.component)
+      return {
+        component: code,
+        label: componentLabels[code] ?? code,
+        raw_value: c.raw_value != null ? Number(c.raw_value) : null,
+        normalized: Number(c.normalized_value),
+        smoothed: c.smoothed_value != null ? Number(c.smoothed_value) : null,
+      }
+    })
 
     return NextResponse.json({
       data: {

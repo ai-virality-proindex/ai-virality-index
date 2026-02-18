@@ -52,6 +52,10 @@ const COMPONENT_HINTS: Record<string, { source: string; desc: string }> = {
   M: { source: 'Wikipedia', desc: 'How many people read the Wikipedia page about this model' },
 }
 
+/** Map legacy component codes to current ones (Q was renamed to D) */
+const LEGACY_MAP: Record<string, string> = { Q: 'D' }
+function mapCode(code: string): string { return LEGACY_MAP[code] ?? code }
+
 /** Threshold: deltas smaller than this are treated as "no change" */
 const DELTA_THRESHOLD = 0.5
 
@@ -103,13 +107,16 @@ export default function BreakdownRadar({ data, modelColor, blurred = false }: Br
     )
   }
 
-  const chartData = data.map((d) => ({
-    component: COMPONENT_LABELS[d.component] || d.component,
-    code: d.component,
-    value: Number(d.smoothed_value ?? d.normalized_value),
-    delta: d.delta,
-    fullMark: 100,
-  }))
+  const chartData = data.map((d) => {
+    const code = mapCode(d.component)
+    return {
+      component: COMPONENT_LABELS[code] || code,
+      code,
+      value: Number(d.smoothed_value ?? d.normalized_value),
+      delta: d.delta,
+      fullMark: 100,
+    }
+  })
 
   return (
     <div className="rounded-xl bg-avi-card border border-avi-border p-5 relative">
