@@ -23,6 +23,7 @@ interface ComponentData {
   label: string
   normalized_value: number
   smoothed_value: number | null
+  delta: number | null
 }
 
 interface Signal {

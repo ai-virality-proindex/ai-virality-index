@@ -108,13 +108,13 @@ async function getModelData(slug: string) {
       }
     : null
 
-  // 3. Get component breakdown (latest)
+  // 3. Get component breakdown (latest 2 days for delta calculation)
   const { data: breakdownRaw } = await supabase
     .from('component_scores')
-    .select('component, normalized_value, smoothed_value')
+    .select('date, component, normalized_value, smoothed_value')
     .eq('model_id', model.id)
     .order('date', { ascending: false })
-    .limit(6) // T, S, G, N, Q, M
+    .limit(12) // T, S, G, N, Q, M × 2 days
 
   const LABELS: Record<string, string> = {
     T: 'Search Interest',
@@ -125,7 +125,18 @@ async function getModelData(slug: string) {
     M: 'Market Conviction',
   }
 
-  // Deduplicate by component (keep latest)
+  // Separate into latest day and previous day
+  const byDate: Record<string, Record<string, number>> = {}
+  for (const r of (breakdownRaw ?? []) as any[]) {
+    if (!byDate[r.date]) byDate[r.date] = {}
+    const val = r.smoothed_value != null ? Number(r.smoothed_value) : Number(r.normalized_value)
+    byDate[r.date][r.component] = val
+  }
+  const sortedDates = Object.keys(byDate).sort().reverse() // newest first
+  const latestMap = byDate[sortedDates[0]] ?? {}
+  const prevMap = byDate[sortedDates[1]] ?? {}
+
+  // Deduplicate by component (keep latest) + compute delta
   const seenComp = new Set<string>()
   const breakdown = (breakdownRaw ?? [])
     .filter((r: any) => {
@@ -133,12 +144,17 @@ async function getModelData(slug: string) {
       seenComp.add(r.component)
       return true
     })
-    .map((r: any) => ({
-      component: r.component,
-      label: LABELS[r.component] || r.component,
-      normalized_value: Number(r.normalized_value),
-      smoothed_value: r.smoothed_value != null ? Number(r.smoothed_value) : null,
-    }))
+    .map((r: any) => {
+      const current = latestMap[r.component] ?? 0
+      const prev = prevMap[r.component]
+      return {
+        component: r.component,
+        label: LABELS[r.component] || r.component,
+        normalized_value: Number(r.normalized_value),
+        smoothed_value: r.smoothed_value != null ? Number(r.smoothed_value) : null,
+        delta: prev != null ? current - prev : null,
+      }
+    })
 
   // 4. Get active signals
   const today = new Date().toISOString().split('T')[0]
