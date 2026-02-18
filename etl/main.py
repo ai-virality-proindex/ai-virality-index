@@ -32,7 +32,7 @@ from etl.collectors.hackernews import HackerNewsCollector
 from etl.collectors.github_collector import GitHubCollector
 from etl.collectors.news import GDELTNewsCollector
 from etl.collectors.quality import QualityCollector
-from etl.collectors.market import PolymarketCollector
+from etl.collectors.wikipedia import WikipediaCollector
 
 logging.basicConfig(
     level=logging.INFO,
@@ -48,7 +48,7 @@ COLLECTOR_REGISTRY: dict[str, tuple[type, str]] = {
     "github":     (GitHubCollector,       "github_repo"),
     "gdelt":      (GDELTNewsCollector,    "gdelt_query"),
     "arena":      (QualityCollector,      "arena_name"),
-    "polymarket": (PolymarketCollector,   "search_query"),
+    "wikipedia":  (WikipediaCollector,     "wikipedia_article"),
 }
 
 # Sources that are slow/fragile and need extra delay between models

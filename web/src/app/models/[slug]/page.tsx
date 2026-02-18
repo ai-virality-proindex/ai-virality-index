@@ -122,7 +122,7 @@ async function getModelData(slug: string) {
     G: 'Developer Adoption',
     N: 'News Coverage',
     Q: 'Quality Score',
-    M: 'Market Conviction',
+    M: 'Mindshare',
   }
 
   // Separate into latest day and previous day

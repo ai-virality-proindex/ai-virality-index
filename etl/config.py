@@ -42,7 +42,7 @@ WEIGHTS_TRADE = {
     "G": 0.15,  # GitHub (developer adoption)
     "N": 0.10,  # News (GDELT mentions)
     "Q": 0.20,  # Quality (Arena Elo)
-    "M": 0.15,  # Market (Polymarket odds)
+    "M": 0.15,  # Mindshare (Wikipedia pageviews — was Polymarket odds)
 }
 
 WEIGHTS_CONTENT = {
@@ -51,7 +51,7 @@ WEIGHTS_CONTENT = {
     "G": 0.08,  # GitHub
     "N": 0.20,  # News
     "Q": 0.05,  # Quality
-    "M": 0.07,  # Market
+    "M": 0.07,  # Mindshare (Wikipedia pageviews — was Polymarket odds)
 }
 
 # --- EWMA Smoothing ---

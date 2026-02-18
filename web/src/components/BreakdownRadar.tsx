@@ -31,7 +31,7 @@ const COMPONENT_LABELS: Record<string, string> = {
   G: 'GitHub',
   N: 'News',
   Q: 'Quality',
-  M: 'Market',
+  M: 'Mindshare',
 }
 
 const COMPONENT_COLORS: Record<string, string> = {
@@ -49,7 +49,7 @@ const COMPONENT_HINTS: Record<string, { source: string; desc: string }> = {
   G: { source: 'GitHub API', desc: 'Stars, forks velocity, and issue activity' },
   N: { source: 'GDELT', desc: 'Global news mentions count and sentiment' },
   Q: { source: 'LMArena', desc: 'Elo rating from head-to-head model comparisons' },
-  M: { source: 'Polymarket', desc: 'Prediction market odds and trading volume' },
+  M: { source: 'Wikipedia', desc: 'Daily pageviews — measures public information-seeking interest' },
 }
 
 /** Threshold: deltas smaller than this are treated as "no change" */

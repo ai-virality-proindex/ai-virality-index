@@ -24,6 +24,8 @@ models:
       - "ChatGPT"
       - "OpenAI GPT"
     arena_name: "GPT-4o"
+    wikipedia_articles:
+      - "ChatGPT"
 
   gemini:
     name: "Gemini"
@@ -45,6 +47,8 @@ models:
       - "Google Gemini"
       - "Gemini AI"
     arena_name: "Gemini"
+    wikipedia_articles:
+      - "Gemini_(chatbot)"
 
   claude:
     name: "Claude"
@@ -66,6 +70,8 @@ models:
       - "Anthropic Claude"
       - "Claude AI"
     arena_name: "Claude"
+    wikipedia_articles:
+      - "Claude_(language_model)"
 
   perplexity:
     name: "Perplexity"
@@ -82,6 +88,8 @@ models:
     gdelt_queries:
       - "Perplexity AI"
     arena_name: "Perplexity"
+    wikipedia_articles:
+      - "Perplexity_AI"
 
   deepseek:
     name: "DeepSeek"
@@ -101,6 +109,8 @@ models:
       - "DeepSeek AI"
       - "DeepSeek"
     arena_name: "DeepSeek"
+    wikipedia_articles:
+      - "DeepSeek"
 
   grok:
     name: "Grok"
@@ -120,6 +130,8 @@ models:
       - "Grok AI"
       - "xAI Grok"
     arena_name: "Grok"
+    wikipedia_articles:
+      - "Grok_(chatbot)"
 
   copilot:
     name: "Copilot"
@@ -138,3 +150,6 @@ models:
       - "Microsoft Copilot"
       - "GitHub Copilot"
     arena_name: "Copilot"
+    wikipedia_articles:
+      - "GitHub_Copilot"
+      - "Microsoft_Copilot"

@@ -12,7 +12,7 @@ Component mapping:
     G: source='github',      'stars_delta_1d' + 'forks_delta_1d'
     N: source='gdelt',       'article_count'
     Q: source='arena',       'elo_rating'
-    M: source='polymarket',  'odds'
+    M: source='wikipedia',   'pageviews_7d' (was 'polymarket'/'odds')
 
 Weights:
     Trading: 0.20*T + 0.20*S + 0.15*G + 0.10*N + 0.20*Q + 0.15*M
@@ -49,7 +49,7 @@ COMPONENT_SOURCES = {
     "G": [("github", "stars_delta_1d"), ("github", "forks_delta_1d")],
     "N": [("gdelt", "article_count")],
     "Q": [("arena", "elo_rating")],
-    "M": [("polymarket", "odds")],
+    "M": [("wikipedia", "pageviews_7d")],
 }
 
 

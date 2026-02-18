@@ -4,6 +4,8 @@ Google Trends collector — fetches search interest data via pytrends.
 Queries interest_over_time for each model's search aliases,
 aggregates by taking the max interest across aliases per day,
 and computes a 7-day rolling average.
+
+Fallback: when pytrends gets 429'd, tries trendspy as an alternative.
 """
 
 import logging
@@ -32,6 +34,7 @@ class TrendsCollector(BaseCollector):
     def __init__(self, timeout: tuple[int, int] = (10, 30)):
         super().__init__()
         self._timeout = timeout
+        self._pytrends_blocked = False  # Track if pytrends is 429'd this session
 
     def _new_pytrends(self) -> TrendReq:
         """Create a fresh TrendReq instance (resets session cookies)."""
@@ -81,7 +84,57 @@ class TrendsCollector(BaseCollector):
                     return None
 
         self.logger.error(f"All 429 retries exhausted for batch {batch}")
+        self._pytrends_blocked = True
         return None
+
+    def _fetch_with_trendspy(self, aliases: list[str]) -> dict[str, float] | None:
+        """
+        Fallback: fetch trends data using trendspy package when pytrends is blocked.
+
+        Returns:
+            Dict with {interest, interest_7d_avg} or None on failure.
+        """
+        try:
+            from trendspy import Trends
+
+            tr = Trends()
+            # trendspy uses a different API endpoint that may not be blocked
+            # Use the first alias as the primary keyword
+            keyword = aliases[0]
+
+            self.logger.info(f"Trying trendspy fallback for '{keyword}'")
+
+            # Get interest over time for the last 7 days
+            df = tr.interest_over_time(
+                keyword,
+                timeframe="now 7-d",
+                geo="",
+            )
+
+            if df is None or df.empty:
+                self.logger.warning(f"trendspy returned empty data for '{keyword}'")
+                return None
+
+            # Extract values
+            values = df[keyword] if keyword in df.columns else df.iloc[:, 0]
+            interest = float(values.iloc[-1])
+            interest_7d_avg = float(values.mean())
+
+            self.logger.info(
+                f"trendspy fallback success: interest={interest:.1f}, "
+                f"7d_avg={interest_7d_avg:.1f}"
+            )
+            return {
+                "interest": round(interest, 2),
+                "interest_7d_avg": round(interest_7d_avg, 2),
+            }
+
+        except ImportError:
+            self.logger.warning("trendspy package not installed, fallback unavailable")
+            return None
+        except Exception as e:
+            self.logger.warning(f"trendspy fallback failed: {e}")
+            return None
 
     def fetch(self, model_slug: str, aliases: list[str]) -> dict[str, Any] | None:
         """
@@ -90,6 +143,8 @@ class TrendsCollector(BaseCollector):
         Queries interest_over_time for aliases (batched in groups of 5,
         the pytrends max). Takes the max interest value per day across
         all aliases, then computes a 7-day rolling average.
+
+        Falls back to trendspy if pytrends is blocked (429).
 
         Args:
             model_slug: Model identifier (e.g., 'chatgpt')
@@ -104,6 +159,25 @@ class TrendsCollector(BaseCollector):
             return None
 
         self.logger.info(f"Fetching trends for {model_slug} with {len(aliases)} aliases")
+
+        # If pytrends was already blocked in this session, skip directly to trendspy
+        if self._pytrends_blocked:
+            self.logger.info(
+                f"pytrends blocked this session, using trendspy fallback for {model_slug}"
+            )
+            trendspy_data = self._fetch_with_trendspy(aliases)
+            if trendspy_data:
+                result = self.make_result(
+                    model_slug=model_slug,
+                    metrics=trendspy_data,
+                )
+                result["raw_json"] = {
+                    "aliases_queried": aliases,
+                    "source": "trendspy_fallback",
+                    "pytrends_blocked": True,
+                }
+                return result
+            return None
 
         all_frames: list[pd.DataFrame] = []
 
@@ -122,7 +196,26 @@ class TrendsCollector(BaseCollector):
                 all_frames.append(df)
 
         if not all_frames:
-            self.logger.error(f"All trends batches failed for {model_slug}")
+            # All pytrends batches failed — try trendspy fallback
+            self.logger.warning(
+                f"All pytrends batches failed for {model_slug}, trying trendspy fallback"
+            )
+            trendspy_data = self._fetch_with_trendspy(aliases)
+            if trendspy_data:
+                result = self.make_result(
+                    model_slug=model_slug,
+                    metrics=trendspy_data,
+                )
+                result["raw_json"] = {
+                    "aliases_queried": aliases,
+                    "source": "trendspy_fallback",
+                    "pytrends_blocked": True,
+                }
+                return result
+
+            self.logger.error(
+                f"All trends sources failed for {model_slug} (pytrends + trendspy)"
+            )
             return None
 
         # Combine all batches, take max interest across aliases per timestamp
@@ -152,6 +245,7 @@ class TrendsCollector(BaseCollector):
         )
         result["raw_json"] = {
             "aliases_queried": aliases,
+            "source": "pytrends",
             "daily_max": raw_daily,
             "num_datapoints": len(max_per_timestamp),
         }
