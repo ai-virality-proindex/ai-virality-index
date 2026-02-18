@@ -17,11 +17,11 @@ export default function IndexGauge({ value, label, size = 'md' }: IndexGaugeProp
   const indexLabel = getIndexLabel(value)
   const clamped = Math.max(0, Math.min(100, value))
 
-  // Size presets
+  // Size presets — cy must be close to h so the arc sits at the bottom of the SVG
   const dims = {
-    sm: { w: 140, h: 95, cx: 70, cy: 75, r: 55, stroke: 10, textSize: 'text-2xl', labelSize: 'text-xs' },
-    md: { w: 200, h: 130, cx: 100, cy: 100, r: 75, stroke: 12, textSize: 'text-4xl', labelSize: 'text-sm' },
-    lg: { w: 280, h: 175, cx: 140, cy: 140, r: 105, stroke: 16, textSize: 'text-5xl', labelSize: 'text-base' },
+    sm: { w: 140, h: 85, cx: 70, cy: 70, r: 55, stroke: 8, textSize: 'text-2xl', labelSize: 'text-xs' },
+    md: { w: 200, h: 120, cx: 100, cy: 95, r: 75, stroke: 10, textSize: 'text-4xl', labelSize: 'text-sm' },
+    lg: { w: 280, h: 165, cx: 140, cy: 130, r: 105, stroke: 14, textSize: 'text-5xl', labelSize: 'text-base' },
   }
   const d = dims[size]
 
