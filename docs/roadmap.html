@@ -203,7 +203,7 @@
         <div class="goal-block">
             <h2>Цель проекта</h2>
             <p>Создать <span class="highlight">AI Virality Index</span> — публичный индекс 0-100 для AI-моделей (ChatGPT, Gemini, Claude, DeepSeek, Grok, Perplexity, Copilot).</p>
-            <p>Аналог <span class="highlight">Fear & Greed Index</span>, но для AI. Два режима: Trading (для трейдеров на Polymarket) и Content (для блогеров/маркетологов).</p>
+            <p>Аналог <span class="highlight">Fear & Greed Index</span>, но для AI. Два режима: Trading (для трейдеров) и Content (для блогеров/маркетологов).</p>
             <p>Монетизация: подписки $29-$499/мес, API, партнёрские ссылки, контент.</p>
         </div>
 
@@ -238,7 +238,7 @@
                         <span class="phase-title">Phase 1: Сбор данных (ETL)</span>
                         <span class="phase-badge badge-done">Готово</span>
                     </div>
-                    <p class="phase-desc">Собираем данные из 7 источников: Google Trends, YouTube, HackerNews, GitHub, GDELT новости, Arena рейтинги, Polymarket ставки</p>
+                    <p class="phase-desc">Собираем данные из 7 источников: Google Trends, YouTube, HackerNews, GitHub, GDELT новости, Arena рейтинги, Dev Adoption</p>
                     <ul class="tasks-list">
                         <li class="task-done"><span class="task-icon">&#10003;</span> 1.1 — Google Trends коллектор + клиент Supabase</li>
                         <li class="task-done"><span class="task-icon">&#10003;</span> 1.2 — YouTube коллектор (видео, просмотры, вовлечённость)</li>
@@ -798,7 +798,7 @@ Content: 0.25*T + 0.35*S + 0.05*G + 0.20*N + 0.05*D + 0.10*M</pre>
 
 1. Логика расчёта индекса — адекватны ли веса? Не нужно ли пересмотреть на основе реальных данных?
 2. Новые источники данных (Crunchbase, X/Twitter, ProductHunt, ArXiv)
-3. Качество данных — какие коллекторы ненадёжны (pytrends 429, Polymarket без рынков)?
+3. Качество данных — какие коллекторы ненадёжны (pytrends 429, Polymarket заменён на DevAdoption)?
 4. UX/UI — что улучшить на дашборде?
 5. Масштабирование — что сломается при росте?
 6. Монетизация — правильны ли тарифы $29/$99?
@@ -822,7 +822,7 @@ Content: 0.25*T + 0.35*S + 0.05*G + 0.20*N + 0.05*D + 0.10*M</pre>
                     <ul class="tasks-list">
                         <li class="task-future"><span class="task-icon">&#9675;</span> 10.1 — Собрать 14 дней непрерывных данных (ETL без сбоев)</li>
                         <li class="task-future"><span class="task-icon">&#9675;</span> 10.2 — Бэктест: проверить индекс на известных событиях (DeepSeek R1, GPT-4o, Gemini 2.0)</li>
-                        <li class="task-future"><span class="task-icon">&#9675;</span> 10.3 — Корреляция: сравнить VI с Polymarket odds (лаг 24-48ч?)</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 10.3 — Корреляция: сравнить VI с DevAdoption (лаг 24-48ч?)</li>
                         <li class="task-future"><span class="task-icon">&#9675;</span> 10.4 — Стресс-тест: что показывает индекс при "тишине" vs "шторме"?</li>
                         <li class="task-future"><span class="task-icon">&#9675;</span> 10.5 — Калибровка весов: скорректировать формулу по реальным данным</li>
                         <li class="task-future"><span class="task-icon">&#9675;</span> 10.6 — Написать "Methodology" (whitepaper: что, зачем, как считается)</li>
@@ -878,7 +878,7 @@ RULES:
 
                     <div class="prompt-section">
                         <button class="prompt-toggle" onclick="togglePrompt(this)">
-                            <span class="arrow">&#9654;</span> 10.3-10.4 — Корреляция с Polymarket + Стресс-тест
+                            <span class="arrow">&#9654;</span> 10.3-10.4 — Корреляция с DevAdoption + Стресс-тест
                         </button>
                         <div class="prompt-content">
                             <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
@@ -889,14 +889,14 @@ Phase 10 IN PROGRESS — INDEX VALIDATION
 Task 10.1 ✅: 14 days of continuous data collected
 Task 10.2 ✅: Backtest completed on historical events
 
-NOW: Task 10.3 — Polymarket Correlation Analysis
+NOW: Task 10.3 — DevAdoption Correlation Analysis
 1. Query daily_scores for all models, last 14 days
-2. Query raw_metrics WHERE source='polymarket' — get market odds over time
-3. Calculate: Pearson correlation between VI_trade and polymarket_odds
-4. Key question: does VI LEAD polymarket by 24-48h?
+2. Query raw_metrics WHERE source='devadoption' — get download counts over time
+3. Calculate: Pearson correlation between VI_trade and devadoption_downloads
+4. Key question: does VI LEAD devadoption by 24-48h?
    - Shift VI by 1 day, 2 days — does correlation increase?
    - This is the CORE value prop for traders
-5. Create scatter plot: VI vs Polymarket odds (matplotlib or notebook)
+5. Create scatter plot: VI vs DevAdoption downloads (matplotlib or notebook)
 6. Document findings
 
 Task 10.4 — Stress Test
@@ -932,7 +932,7 @@ NOW: Task 10.5 — Weight Calibration
 Based on backtest + correlation results:
 1. Read etl/processing/index_calculator.py — current weights
 2. Analyze: which components had highest predictive power?
-3. If Trading mode: does increasing Q (quality) weight improve Polymarket correlation?
+3. If Trading mode: does increasing D (dev adoption) weight improve correlation?
 4. If Content mode: does increasing S (social) weight better predict YouTube views?
 5. Propose new weights, test on historical data
 6. If better → update index_calculator.py, document change
@@ -948,7 +948,7 @@ Create web/src/app/methodology/page.tsx:
 
 Task 10.7 — Create 3 Case Studies
 For the 3 best backtest results, write mini case studies:
-- "On [date], AVI detected [model] surge 48h before Polymarket moved"
+- "On [date], AVI detected [model] surge 48h before adoption data confirmed"
 - Include charts/screenshots from dashboard
 - These go on landing page as social proof
 
@@ -1094,7 +1094,7 @@ RULES:
                     <p class="phase-desc">Go-to-market: newsletter, ProductHunt, Twitter, outbound к трейдерам, social proof, viral loops. По фреймворкам Moran (Stack the Deck), Brunson (Attractive Character), Warrillow (10x value). <strong style="color: #10b981;">Старт: после Phase 10 (~5 марта 2026)</strong></p>
                     <ul class="tasks-list">
                         <li class="task-future"><span class="task-icon">&#9675;</span> 12.1 — Email-рассылка: Beehiiv/ConvertKit + CTA на лендинге и дашборде</li>
-                        <li class="task-future"><span class="task-icon">&#9675;</span> 12.2 — Outbound: найти 100 Polymarket трейдеров, написать персональные письма</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 12.2 — Outbound: найти 100 AI трейдеров, написать персональные письма</li>
                         <li class="task-future"><span class="task-icon">&#9675;</span> 12.3 — Контент: блог на /blog (weekly "AI Virality Report")</li>
                         <li class="task-future"><span class="task-icon">&#9675;</span> 12.4 — Twitter/X: аккаунт + daily auto-post "Top Movers" + launch thread</li>
                         <li class="task-future"><span class="task-icon">&#9675;</span> 12.5 — ProductHunt: подготовка + launch day + мобилизация hot list</li>
@@ -1128,13 +1128,13 @@ Task 12.1 — Newsletter Setup
 - Capture: email only (no name needed for minimal friction)
 - Welcome email: "Welcome to AVI. Here's what happened this week in AI virality..."
 
-Task 12.2 — Outbound to Polymarket Traders
-- Find 100 active Polymarket traders who trade AI markets
-- Sources: Polymarket leaderboards, Twitter/X "#polymarket AI", Discord servers
+Task 12.2 — Outbound to AI Traders
+- Find 100 active AI traders who trade AI markets
+- Sources: Prediction market leaderboards, Twitter/X "#AI trading", Discord servers
 - Write personalized template (3 variants, A/B test):
-  Template A: "I built a tool that tracks AI model virality before Polymarket odds move..."
+  Template A: "I built a tool that tracks AI model virality before the market moves..."
   Template B: "Last week our index flagged [model] 48h before the market — want access?"
-  Template C: "[Name], I noticed you trade AI markets on Polymarket. Quick question..."
+  Template C: "[Name], I noticed you trade AI markets. Quick question..."
 - Send via personal email (not bulk), 20/day
 - Track responses in simple spreadsheet
 
@@ -1175,7 +1175,7 @@ NOW: Task 12.4 — Twitter/X Setup
 - Pin tweet: launch thread (10 tweets explaining AVI + link)
 - Daily auto-post: "📊 AI Virality Top Movers — [date]: [model] ↑[delta] | [model] ↓[delta]"
   (Can be manual first, automate later with GitHub Actions + Twitter API)
-- Engage: follow AI traders, Polymarket influencers, AI newsletter operators
+- Engage: follow AI traders, prediction market influencers, AI newsletter operators
 
 Task 12.5 — ProductHunt Launch
 PRE-LAUNCH (1 week before):
@@ -1242,7 +1242,7 @@ Value Ladder step (Brunson): qualify buyers with a cheap product before $29 subs
   Page 1: Market Overview (gauge + top 3 movers)
   Page 2: Model-by-model breakdown (7 models, score + delta + signal)
   Page 3: Component analysis (which signals drove changes)
-  Page 4: Trading opportunities (divergence from Polymarket)
+  Page 4: Trading opportunities (divergence from adoption data)
 - Stripe one-time payment link ($7)
 - Landing page: /report with preview + buy button
 - Generate weekly with ETL data, upload to Supabase Storage
@@ -1310,7 +1310,7 @@ RULES:
                         <li>&#9679; YouTube: "AI Model of the Week"</li>
                         <li>&#9679; SEO: model pages rank</li>
                         <li>&#9679; Enterprise outbound</li>
-                        <li>&#9679; Affiliate: Polymarket links</li>
+                        <li>&#9679; Affiliate: prediction market links</li>
                     </ul>
                 </div>
             </div>
@@ -1406,7 +1406,7 @@ RULES:
             <div style="display: flex; gap: 16px; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 200px; background: #0f172a; border: 1px solid #dc2626; border-radius: 12px; padding: 16px;">
                     <h3 style="color: #fca5a5; font-size: 1em;">Phase A: Доказать</h3>
-                    <p style="color: #94a3b8; font-size: 0.85em; margin-top: 8px;">14 дней данных → бэктест → корреляция с Polymarket → 3 кейса. <strong style="color: white;">Без этого нечего продавать.</strong></p>
+                    <p style="color: #94a3b8; font-size: 0.85em; margin-top: 8px;">14 дней данных → бэктест → корреляция с DevAdoption → 3 кейса. <strong style="color: white;">Без этого нечего продавать.</strong></p>
                 </div>
                 <div style="flex: 1; min-width: 200px; background: #0f172a; border: 1px solid #f59e0b; border-radius: 12px; padding: 16px;">
                     <h3 style="color: #fbbf24; font-size: 1em;">Phase B: Починить</h3>

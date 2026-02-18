@@ -17,7 +17,7 @@ Tracked models (MVP): ChatGPT, Gemini, Claude, Perplexity, DeepSeek, Grok, Copil
 
 | Mode | Target Audience | Goal |
 |------|----------------|------|
-| **Trading** | Polymarket/Kalshi traders | Catch early attention shifts before odds move |
+| **Trading** | Prediction market traders | Catch early attention shifts before odds move |
 | **Content/Marketing** | YouTubers, bloggers, marketers | Find trending topics for maximum reach |
 
 ### 1.3 Market Gap
@@ -103,8 +103,8 @@ For each model `m` on day `t`:
 | Social Score | S(m,t) | YouTube videos/views/engagement + Reddit posts/comments |
 | GitHub Score | G(m,t) | Stars/forks velocity, issue activity |
 | News Score | N(m,t) | GDELT mentions count + sentiment |
-| Quality Score | Q(m,t) | Arena Elo rank + AA Intelligence Index |
-| Market Score | M(m,t) | Polymarket odds + volume (when available) |
+| Dev Adoption | D(m,t) | npm + PyPI SDK downloads |
+| Mindshare | M(m,t) | Wikipedia pageviews |
 
 ### 2.4 Normalization: Rolling Quantile Scaling
 
@@ -184,18 +184,18 @@ Heat_content(t) = 0.50 * VI_content(t) + 0.50 * norm(Delta7(VI_content))
 ### 2.7 Divergence Signal (for traders)
 
 ```
-Divergence(m,t) = z(Delta7(VI_trade(m))) - z(Delta7(odds(m)))
+Divergence(m,t) = z(Delta7(VI_trade(m))) - z(Delta7(D_downloads(m)))
 ```
 
-Where `odds(m)` = Polymarket probability for model m.
+Where `D_downloads(m)` = npm + PyPI SDK daily downloads for model m.
 
 **Strategy A: Momentum Breakout**
-- Entry: VI_trade > 70 AND Delta7 > 15 AND Accel > 0 AND odds grew < 5pp in 7 days
-- Exit: odds catch up (+15pp from entry) OR Accel negative for 2 consecutive days
+- Entry: VI_trade > 70 AND Delta7 > 15 AND Accel > 0 AND DevAdoption grew < 10% in 7 days
+- Exit: DevAdoption catches up (>10% growth) OR Accel negative for 2 consecutive days
 
-**Strategy B: Quality-Backed Virality**
-- Entry: VI_trade growing AND Q > 75 AND G also growing
-- Exit: Q or G momentum falls (loss of fundamental support)
+**Strategy B: Adoption-Backed Virality**
+- Entry: VI_trade growing AND D > 65 AND G also growing
+- Exit: D or G momentum falls (loss of fundamental support)
 
 ### 2.8 Calibration & Backtesting
 
@@ -257,9 +257,9 @@ YouTube API ────┤                ┌─ fetch_trends.py          ├�
 Reddit API ─────┤──> Ingestion ──┤─ fetch_youtube.py         ├─ raw_metrics
 GitHub API ─────┤    Layer       ├─ fetch_reddit.py    ──>   ├─ daily_scores        ┌─ Public Dashboard
 GDELT API ──────┤                ├─ fetch_github.py          ├─ signals             ├─ Public API (cached)
-Arena/AA ───────┤                ├─ fetch_news.py            ├─ users               ├─ Pro API (auth)
-Polymarket ─────┘                ├─ fetch_quality.py         ├─ api_keys            └─ Alerts/Webhooks
-                                 ├─ fetch_market.py          └─ plans
+npm/PyPI ───────┤                ├─ fetch_news.py            ├─ users               ├─ Pro API (auth)
+Wikipedia ──────┘                ├─ fetch_devadoption.py     ├─ api_keys            └─ Alerts/Webhooks
+                                 ├─ fetch_wikipedia.py       └─ plans
                                  └─ calc_index.py
                                       │
                                  [Processing]
@@ -299,7 +299,7 @@ CREATE TABLE raw_metrics (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     model_id UUID REFERENCES models(id) ON DELETE CASCADE,
     date DATE NOT NULL,
-    source TEXT NOT NULL,                -- 'trends', 'youtube', 'reddit', 'github', 'gdelt', 'arena', 'polymarket'
+    source TEXT NOT NULL,                -- 'trends', 'youtube', 'reddit', 'github', 'gdelt', 'devadoption', 'wikipedia'
     metric_name TEXT NOT NULL,           -- 'interest', 'video_count', 'stars_delta7', etc.
     metric_value NUMERIC NOT NULL,
     raw_json JSONB,                      -- full API response for debugging
@@ -312,7 +312,7 @@ CREATE TABLE component_scores (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     model_id UUID REFERENCES models(id) ON DELETE CASCADE,
     date DATE NOT NULL,
-    component TEXT NOT NULL,             -- 'T', 'S', 'G', 'N', 'Q', 'M'
+    component TEXT NOT NULL,             -- 'T', 'S', 'G', 'N', 'D', 'M'
     raw_value NUMERIC,
     normalized_value NUMERIC NOT NULL,   -- 0-100 after quantile scaling
     smoothed_value NUMERIC,              -- after EWMA
@@ -332,7 +332,7 @@ CREATE TABLE daily_scores (
     delta7_content NUMERIC,
     accel_trade NUMERIC,
     accel_content NUMERIC,
-    component_breakdown JSONB,           -- {T: 72, S: 85, G: 45, N: 60, Q: 78, M: 55}
+    component_breakdown JSONB,           -- {T: 72, S: 85, G: 45, N: 60, D: 78, M: 55}
     UNIQUE(model_id, date)
 );
 
@@ -345,7 +345,7 @@ CREATE TABLE signals (
     direction TEXT,                      -- 'bullish', 'bearish'
     strength NUMERIC,                    -- 0-100
     vi_trade NUMERIC,
-    polymarket_odds NUMERIC,
+    polymarket_odds NUMERIC,             -- legacy field, always 0 (kept for backward compat)
     divergence_score NUMERIC,
     reasoning TEXT,
     expires_at DATE,
@@ -409,7 +409,7 @@ PUBLIC (no auth, cached 1 hour, 60 req/min by IP):
 
 PRO (API key required, 600 req/min):
   GET  /api/v1/index/history?model=chatgpt&from=2024-01-01&to=2025-12-31  -- full history
-  GET  /api/v1/breakdown?model=chatgpt&date=2025-06-15  -- component breakdown (T/S/G/N/Q/M)
+  GET  /api/v1/breakdown?model=chatgpt&date=2025-06-15  -- component breakdown (T/S/G/N/D/M)
   GET  /api/v1/signals                          -- active divergence/trading signals
   GET  /api/v1/signals?model=chatgpt            -- signals for specific model
   GET  /api/v1/compare?models=chatgpt,gemini,claude&days=30  -- multi-model comparison
@@ -450,12 +450,12 @@ ENTERPRISE (API key + SLA):
 
 ### 4.2 Additional Revenue Streams
 
-1. **Polymarket/Kalshi affiliate links** — referral commission on prediction market sign-ups
+1. **Prediction market affiliate links** — referral commission on prediction market sign-ups
 2. **"AI Virality Brief" newsletter** — weekly email with top movers (free = growth engine, sponsor slots = revenue)
 3. **Embeddable widget** — `<iframe>` badge "Powered by AI Virality Index" (free = viral loop)
 4. **Research reports** — "Monthly State of AI Virality" ($49-99 one-time or included in Pro)
 5. **Content monetization** — TikTok/YouTube shorts with weekly index updates (RPM $3-8 + affiliate)
-6. **Bot starter templates** — open-source Polymarket bot template that requires AVI API key
+6. **Bot starter templates** — open-source prediction market bot template that requires AVI API key
 
 ### 4.3 Pricing Rationale
 
@@ -484,8 +484,8 @@ ai-virality-index/
 │   │   ├── reddit.py                  # Reddit via PRAW
 │   │   ├── github_collector.py        # GitHub REST/GraphQL API
 │   │   ├── news.py                    # GDELT DOC API
-│   │   ├── quality.py                 # Arena Elo + AA scraping
-│   │   └── market.py                  # Polymarket Gamma API
+│   │   ├── devadoption.py              # npm + PyPI SDK downloads
+│   │   └── wikipedia.py               # Wikipedia Pageviews API
 │   ├── processing/
 │   │   ├── __init__.py
 │   │   ├── normalizer.py             # Quantile scaling + Winsorize
@@ -651,8 +651,8 @@ tenacity>=8.2.0          # Retry logic for API calls
 - [ ] Implement `reddit.py` (Reddit PRAW)
 - [ ] Implement `github_collector.py` (GitHub API)
 - [ ] Implement `news.py` (GDELT DOC API)
-- [ ] Implement `quality.py` (Arena Elo scraping)
-- [ ] Implement `market.py` (Polymarket Gamma API)
+- [ ] Implement `wikipedia.py` (Wikipedia Pageviews API)
+- [ ] Implement `devadoption.py` (npm + PyPI SDK downloads)
 - [ ] Implement `supabase_client.py` (upsert raw_metrics)
 - [ ] Test each collector individually
 - [ ] Create `main.py` orchestrator
@@ -736,8 +736,8 @@ tenacity>=8.2.0          # Retry logic for API calls
 | Google Trends pytrends breaks | High | Cache aggressively, implement retry logic, monitor for 429s |
 | YouTube API quota exhaustion | Medium | Batch requests, cache 24h, request quota increase |
 | GDELT API instability | Medium | Fallback to NewsAPI (free tier), cache results |
-| Arena Elo data unavailable | Low | Q component degrades gracefully, flag incomplete data |
-| Polymarket API changes | Medium | M component optional, degrade to 5-component formula |
+| Wikipedia API unavailable | Low | M component degrades gracefully, flag incomplete data |
+| npm/PyPI API changes | Medium | D component optional, degrade to 5-component formula |
 | Goodhart's Law (gaming) | Long-term | Quarterly weight review, anomaly detection, source diversification |
 | Platform dependency (Vercel/Supabase) | Low | Standard Postgres + Next.js = portable to any host |
 | Legal issues (data scraping) | Low-Medium | Use only official APIs and open data (GDELT), no scraping of ToS-protected content |

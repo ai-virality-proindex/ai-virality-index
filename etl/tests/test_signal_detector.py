@@ -3,9 +3,9 @@ Tests for etl/processing/signal_detector.py
 
 Tests signal detection logic:
 - _z_score helper
-- Divergence detection
+- Divergence detection (VI_trade vs DevAdoption momentum)
 - Momentum breakout detection
-- Quality-backed detection
+- Adoption-backed detection
 - Edge cases and threshold verification
 
 Uses mocking to avoid Supabase calls.
@@ -58,7 +58,7 @@ class TestZScore(unittest.TestCase):
 
 
 class TestDetectDivergence(unittest.TestCase):
-    """Test divergence signal detection."""
+    """Test divergence signal detection (VI_trade vs DevAdoption)."""
 
     @patch("etl.processing.signal_detector.get_raw_metrics")
     @patch("etl.processing.signal_detector._get_daily_scores_series")
@@ -76,14 +76,14 @@ class TestDetectDivergence(unittest.TestCase):
     @patch("etl.processing.signal_detector.get_raw_metrics")
     @patch("etl.processing.signal_detector._get_daily_scores_series")
     def test_no_divergence_returns_none(self, mock_daily, mock_raw):
-        """When VI and odds move together, no divergence."""
+        """When VI and DevAdoption move together, no divergence."""
         # 12 days of data, flat trend
         mock_daily.return_value = [
             {"vi_trade": 50.0, "date": f"2026-02-{i:02d}"}
             for i in range(1, 13)
         ]
         mock_raw.return_value = [
-            {"metric_value": 30.0, "date": f"2026-02-{i:02d}"}
+            {"metric_value": 100000.0, "date": f"2026-02-{i:02d}"}
             for i in range(1, 13)
         ]
 
@@ -94,15 +94,15 @@ class TestDetectDivergence(unittest.TestCase):
     @patch("etl.processing.signal_detector.get_raw_metrics")
     @patch("etl.processing.signal_detector._get_daily_scores_series")
     def test_strong_divergence_returns_signal(self, mock_daily, mock_raw):
-        """VI rising rapidly while odds flat -> bullish divergence."""
+        """VI rising rapidly while DevAdoption flat -> bullish divergence."""
         # VI rising 5 points per day
         mock_daily.return_value = [
             {"vi_trade": 40.0 + i * 5, "date": f"2026-02-{i:02d}"}
             for i in range(1, 16)
         ]
-        # Odds completely flat
+        # DevAdoption completely flat
         mock_raw.return_value = [
-            {"metric_value": 30.0, "date": f"2026-02-{i:02d}"}
+            {"metric_value": 100000.0, "date": f"2026-02-{i:02d}"}
             for i in range(1, 16)
         ]
 
@@ -117,16 +117,35 @@ class TestDetectDivergence(unittest.TestCase):
 
     @patch("etl.processing.signal_detector.get_raw_metrics")
     @patch("etl.processing.signal_detector._get_daily_scores_series")
-    def test_no_odds_data_returns_none(self, mock_daily, mock_raw):
+    def test_no_devadoption_data_returns_none(self, mock_daily, mock_raw):
         mock_daily.return_value = [
             {"vi_trade": 50.0 + i, "date": f"2026-02-{i:02d}"}
             for i in range(1, 16)
         ]
-        mock_raw.return_value = []  # No Polymarket data
+        mock_raw.return_value = []  # No DevAdoption data
 
         from etl.processing.signal_detector import detect_divergence
         result = detect_divergence("model-1", date(2026, 2, 18))
         self.assertIsNone(result)
+
+    @patch("etl.processing.signal_detector.get_raw_metrics")
+    @patch("etl.processing.signal_detector._get_daily_scores_series")
+    def test_divergence_calls_devadoption_source(self, mock_daily, mock_raw):
+        """Verify divergence queries 'devadoption' source, not 'polymarket'."""
+        mock_daily.return_value = [
+            {"vi_trade": 50.0, "date": f"2026-02-{i:02d}"}
+            for i in range(1, 12)
+        ]
+        mock_raw.return_value = []
+
+        from etl.processing.signal_detector import detect_divergence
+        detect_divergence("model-1", date(2026, 2, 18))
+
+        # Verify it called get_raw_metrics with 'devadoption', not 'polymarket'
+        mock_raw.assert_called_once()
+        call_args = mock_raw.call_args
+        self.assertEqual(call_args[0][1], "devadoption")
+        self.assertEqual(call_args[0][2], "downloads_daily")
 
 
 class TestDetectMomentumBreakout(unittest.TestCase):
@@ -174,15 +193,15 @@ class TestDetectMomentumBreakout(unittest.TestCase):
     @patch("etl.processing.signal_detector.get_raw_metrics")
     @patch("etl.processing.signal_detector._get_daily_scores_series")
     def test_breakout_when_conditions_met(self, mock_daily, mock_raw):
-        """All conditions met: VI>65, d7>10, accel>0, odds<5pp."""
+        """All conditions met: VI>65, d7>10, accel>0, adoption<10%."""
         mock_daily.return_value = [
             {"vi_trade": 75.0, "delta7_trade": 15.0, "accel_trade": 3.0,
              "date": f"2026-02-{i:02d}"}
             for i in range(1, 10)
         ]
-        # Odds barely moved
+        # DevAdoption barely moved
         mock_raw.return_value = [
-            {"metric_value": 30.0 + (i * 0.1), "date": f"2026-02-{i:02d}"}
+            {"metric_value": 100000.0 + (i * 100), "date": f"2026-02-{i:02d}"}
             for i in range(1, 10)
         ]
 
@@ -195,16 +214,16 @@ class TestDetectMomentumBreakout(unittest.TestCase):
 
     @patch("etl.processing.signal_detector.get_raw_metrics")
     @patch("etl.processing.signal_detector._get_daily_scores_series")
-    def test_odds_caught_up_no_breakout(self, mock_daily, mock_raw):
-        """If odds grew >= 5pp, no breakout (market already priced in)."""
+    def test_adoption_caught_up_no_breakout(self, mock_daily, mock_raw):
+        """If adoption grew >= 10%, no breakout (adoption confirmed hype)."""
         mock_daily.return_value = [
             {"vi_trade": 80.0, "delta7_trade": 20.0, "accel_trade": 5.0,
              "date": f"2026-02-{i:02d}"}
             for i in range(1, 16)
         ]
-        # Odds grew significantly (>5pp over 7 days)
+        # DevAdoption grew significantly (>10% over period)
         mock_raw.return_value = [
-            {"metric_value": 30.0 + i, "date": f"2026-02-{i:02d}"}
+            {"metric_value": 100000.0 + i * 5000, "date": f"2026-02-{i:02d}"}
             for i in range(1, 16)
         ]
 
@@ -212,17 +231,36 @@ class TestDetectMomentumBreakout(unittest.TestCase):
         result = detect_momentum_breakout("model-1", date(2026, 2, 18))
         self.assertIsNone(result)
 
+    @patch("etl.processing.signal_detector.get_raw_metrics")
+    @patch("etl.processing.signal_detector._get_daily_scores_series")
+    def test_breakout_calls_devadoption_source(self, mock_daily, mock_raw):
+        """Verify breakout queries 'devadoption' source, not 'polymarket'."""
+        mock_daily.return_value = [
+            {"vi_trade": 75.0, "delta7_trade": 15.0, "accel_trade": 3.0,
+             "date": f"2026-02-{i:02d}"}
+            for i in range(1, 10)
+        ]
+        mock_raw.return_value = []
 
-class TestDetectQualityBacked(unittest.TestCase):
-    """Test quality-backed signal detection."""
+        from etl.processing.signal_detector import detect_momentum_breakout
+        detect_momentum_breakout("model-1", date(2026, 2, 18))
+
+        mock_raw.assert_called_once()
+        call_args = mock_raw.call_args
+        self.assertEqual(call_args[0][1], "devadoption")
+        self.assertEqual(call_args[0][2], "downloads_daily")
+
+
+class TestDetectAdoptionBacked(unittest.TestCase):
+    """Test adoption-backed signal detection (formerly quality_backed)."""
 
     @patch("etl.processing.signal_detector._get_component_score")
     @patch("etl.processing.signal_detector._get_daily_scores_series")
     def test_no_data_returns_none(self, mock_daily, mock_comp):
         mock_daily.return_value = []
 
-        from etl.processing.signal_detector import detect_quality_backed
-        result = detect_quality_backed("model-1", date(2026, 2, 18))
+        from etl.processing.signal_detector import detect_adoption_backed
+        result = detect_adoption_backed("model-1", date(2026, 2, 18))
         self.assertIsNone(result)
 
     @patch("etl.processing.signal_detector._get_component_score")
@@ -235,30 +273,30 @@ class TestDetectQualityBacked(unittest.TestCase):
             for i in range(1, 10)
         ]
 
-        from etl.processing.signal_detector import detect_quality_backed
-        result = detect_quality_backed("model-1", date(2026, 2, 18))
+        from etl.processing.signal_detector import detect_adoption_backed
+        result = detect_adoption_backed("model-1", date(2026, 2, 18))
         self.assertIsNone(result)
 
     @patch("etl.processing.signal_detector._get_component_score")
     @patch("etl.processing.signal_detector._get_daily_scores_series")
-    def test_low_q_returns_none(self, mock_daily, mock_comp):
-        """Q component must be above threshold."""
+    def test_low_d_returns_none(self, mock_daily, mock_comp):
+        """D component must be above threshold."""
         mock_daily.return_value = [
             {"vi_trade": 60.0, "delta7_trade": 10.0,
              "date": f"2026-02-{i:02d}"}
             for i in range(1, 10)
         ]
-        # Q below threshold of 65 (for 7+ days)
+        # D below threshold of 65 (for 7+ days)
         mock_comp.return_value = 50.0
 
-        from etl.processing.signal_detector import detect_quality_backed
-        result = detect_quality_backed("model-1", date(2026, 2, 18))
+        from etl.processing.signal_detector import detect_adoption_backed
+        result = detect_adoption_backed("model-1", date(2026, 2, 18))
         self.assertIsNone(result)
 
     @patch("etl.processing.signal_detector._get_component_score")
     @patch("etl.processing.signal_detector._get_daily_scores_series")
-    def test_quality_backed_signal(self, mock_daily, mock_comp):
-        """When all conditions met: growing, high Q, G trending up."""
+    def test_adoption_backed_signal(self, mock_daily, mock_comp):
+        """When all conditions met: growing, high D, G trending up."""
         mock_daily.return_value = [
             {"vi_trade": 70.0, "delta7_trade": 10.0,
              "date": f"2026-02-{i:02d}"}
@@ -266,7 +304,7 @@ class TestDetectQualityBacked(unittest.TestCase):
         ]
 
         def component_side_effect(model_id, component, calc_date):
-            if component == "Q":
+            if component == "D":
                 return 80.0  # Above threshold
             if component == "G":
                 # G today > G 7 days ago
@@ -278,13 +316,39 @@ class TestDetectQualityBacked(unittest.TestCase):
 
         mock_comp.side_effect = component_side_effect
 
-        from etl.processing.signal_detector import detect_quality_backed
-        result = detect_quality_backed("model-1", date(2026, 2, 18))
+        from etl.processing.signal_detector import detect_adoption_backed
+        result = detect_adoption_backed("model-1", date(2026, 2, 18))
 
         if result is not None:
-            self.assertEqual(result["signal_type"], "quality_backed")
+            self.assertEqual(result["signal_type"], "adoption_backed")
             self.assertEqual(result["direction"], "bullish")
             self.assertIn("reasoning", result)
+
+    @patch("etl.processing.signal_detector._get_component_score")
+    @patch("etl.processing.signal_detector._get_daily_scores_series")
+    def test_uses_d_not_q_component(self, mock_daily, mock_comp):
+        """Verify it queries 'D' component, not 'Q'."""
+        mock_daily.return_value = [
+            {"vi_trade": 70.0, "delta7_trade": 10.0,
+             "date": f"2026-02-{i:02d}"}
+            for i in range(1, 10)
+        ]
+        mock_comp.return_value = None  # Will return None for D, exit early
+
+        from etl.processing.signal_detector import detect_adoption_backed
+        detect_adoption_backed("model-1", date(2026, 2, 18))
+
+        # First call should be for "D", not "Q"
+        first_call = mock_comp.call_args_list[0]
+        self.assertEqual(first_call[0][1], "D")
+
+    def test_backward_compat_alias(self):
+        """detect_quality_backed should be an alias for detect_adoption_backed."""
+        from etl.processing.signal_detector import (
+            detect_quality_backed,
+            detect_adoption_backed,
+        )
+        self.assertIs(detect_quality_backed, detect_adoption_backed)
 
 
 if __name__ == "__main__":

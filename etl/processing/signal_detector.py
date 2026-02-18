@@ -2,14 +2,14 @@
 Signal Detector for AI Virality Index.
 
 Detects trading signals based on divergence between virality index
-and prediction market odds, momentum breakouts, and quality-backed trends.
+components, momentum breakouts, and adoption-backed trends.
 
 Spec reference: TECHNICAL_SPEC.md section 2.7
 
 Signal types:
-    1. divergence — VI_trade momentum diverges from Polymarket odds
-    2. momentum_breakout — strong virality spike not yet priced in
-    3. quality_backed — rising virality supported by quality + developer adoption
+    1. divergence — VI_trade momentum diverges from D (Dev Adoption) momentum
+    2. momentum_breakout — strong virality spike not backed by adoption growth
+    3. adoption_backed — rising virality supported by dev adoption + GitHub activity
 """
 
 import logging
@@ -79,9 +79,12 @@ def detect_divergence(
     calc_date: date,
 ) -> dict[str, Any] | None:
     """
-    Detect divergence between VI_trade momentum and Polymarket odds.
+    Detect divergence between VI_trade momentum and D (Dev Adoption) momentum.
 
-    Divergence = z(Delta7(VI_trade)) - z(Delta7(odds))
+    If VI_trade is surging but SDK downloads aren't growing (or vice versa),
+    that's a meaningful divergence — hype without adoption, or adoption without hype.
+
+    Divergence = z(Delta7(VI_trade)) - z(Delta7(D_component))
     Trigger if |Divergence| > 1.5
 
     Args:
@@ -106,36 +109,36 @@ def detect_divergence(
     if len(vi_deltas) < 3:
         return None
 
-    # Get Polymarket odds history
-    odds_rows = get_raw_metrics(model_id, "polymarket", "odds", days=30)
-    if len(odds_rows) < 8:
+    # Get D (Dev Adoption) component history from raw_metrics
+    d_rows = get_raw_metrics(model_id, "devadoption", "downloads_daily", days=30)
+    if len(d_rows) < 8:
         return None
 
-    odds_values = [float(r["metric_value"]) for r in odds_rows]
+    d_values = [float(r["metric_value"]) for r in d_rows]
 
-    # Calculate delta7 for odds
-    odds_deltas = []
-    for i in range(7, len(odds_values)):
-        odds_deltas.append(odds_values[i] - odds_values[i - 7])
+    # Calculate delta7 for D component
+    d_deltas = []
+    for i in range(7, len(d_values)):
+        d_deltas.append(d_values[i] - d_values[i - 7])
 
-    if len(odds_deltas) < 3:
+    if len(d_deltas) < 3:
         return None
 
     # Z-scores
     z_vi = _z_score(vi_deltas)
-    z_odds = _z_score(odds_deltas)
-    divergence = z_vi - z_odds
+    z_d = _z_score(d_deltas)
+    divergence = z_vi - z_d
 
     if abs(divergence) <= 1.5:
         return None
 
     # Determine direction
     direction = "bullish" if divergence > 0 else "bearish"
-    # Bullish: VI rising faster than odds (odds haven't caught up)
-    # Bearish: VI falling faster than odds (odds haven't adjusted down)
+    # Bullish: VI rising faster than adoption (hype wave, adoption may follow)
+    # Bearish: VI falling but adoption still strong (undervalued)
 
     current_vi = vi_trade_values[-1]
-    current_odds = odds_values[-1] if odds_values else 0
+    current_d = d_values[-1] if d_values else 0
 
     return {
         "model_id": model_id,
@@ -144,10 +147,10 @@ def detect_divergence(
         "direction": direction,
         "strength": round(min(100, abs(divergence) * 33.3), 2),  # ~1.5->50, 3.0->100
         "vi_trade": current_vi,
-        "polymarket_odds": current_odds,
+        "polymarket_odds": 0,  # legacy field kept for DB schema compat
         "divergence_score": round(divergence, 3),
         "reasoning": (
-            f"VI_trade momentum z={z_vi:.2f} vs odds momentum z={z_odds:.2f}. "
+            f"VI_trade momentum z={z_vi:.2f} vs DevAdoption momentum z={z_d:.2f}. "
             f"Divergence={divergence:.2f} exceeds threshold 1.5."
         ),
         "expires_at": (calc_date + timedelta(days=7)).isoformat(),
@@ -159,11 +162,14 @@ def detect_momentum_breakout(
     calc_date: date,
 ) -> dict[str, Any] | None:
     """
-    Detect momentum breakout: strong virality not yet reflected in odds.
+    Detect momentum breakout: strong virality not yet backed by adoption growth.
 
     Uses adaptive thresholds based on available data:
     - With 7+ days of data: VI > 65, delta7 > 10
     - Full thresholds (14+ days): VI > 70, delta7 > 15
+
+    If Dev Adoption (D) hasn't grown proportionally, the breakout is
+    hype-driven and may present a trading opportunity.
 
     Args:
         model_id: UUID of the model.
@@ -195,18 +201,19 @@ def detect_momentum_breakout(
     if vi_trade <= vi_threshold or delta7 <= delta_threshold or accel <= 0:
         return None
 
-    # Check odds movement
-    odds_rows = get_raw_metrics(model_id, "polymarket", "odds", days=14)
-    odds_grew = 0.0
-    if len(odds_rows) >= 2:
-        recent_odds = [float(r["metric_value"]) for r in odds_rows]
-        if len(recent_odds) >= 8:
-            odds_grew = recent_odds[-1] - recent_odds[-8]
+    # Check D (Dev Adoption) movement — did adoption confirm the hype?
+    d_rows = get_raw_metrics(model_id, "devadoption", "downloads_daily", days=14)
+    d_grew_pct = 0.0
+    if len(d_rows) >= 2:
+        recent_d = [float(r["metric_value"]) for r in d_rows]
+        base = recent_d[0] if recent_d[0] > 0 else 1
+        if len(recent_d) >= 8:
+            d_grew_pct = ((recent_d[-1] - recent_d[-8]) / base) * 100
         else:
-            odds_grew = recent_odds[-1] - recent_odds[0]
+            d_grew_pct = ((recent_d[-1] - recent_d[0]) / base) * 100
 
-    if odds_grew >= 5.0:
-        return None  # Odds already caught up
+    if d_grew_pct >= 10.0:
+        return None  # Adoption already confirmed the hype
 
     return {
         "model_id": model_id,
@@ -215,26 +222,26 @@ def detect_momentum_breakout(
         "direction": "bullish",
         "strength": round(min(100, vi_trade * 0.5 + delta7 * 2), 2),
         "vi_trade": vi_trade,
-        "polymarket_odds": float(odds_rows[-1]["metric_value"]) if odds_rows else 0,
-        "divergence_score": round(delta7 - odds_grew, 3),
+        "polymarket_odds": 0,  # legacy field kept for DB schema compat
+        "divergence_score": round(delta7, 3),
         "reasoning": (
             f"VI_trade={vi_trade:.1f}>{vi_threshold}, delta7={delta7:+.1f}>{delta_threshold}, "
-            f"accel={accel:+.1f}>0, but odds only moved {odds_grew:+.1f}pp."
+            f"accel={accel:+.1f}>0, but DevAdoption grew only {d_grew_pct:+.1f}%."
         ),
         "expires_at": (calc_date + timedelta(days=5)).isoformat(),
     }
 
 
-def detect_quality_backed(
+def detect_adoption_backed(
     model_id: str,
     calc_date: date,
 ) -> dict[str, Any] | None:
     """
-    Detect quality-backed virality: rising VI supported by fundamentals.
+    Detect adoption-backed virality: rising VI supported by dev adoption + GitHub.
 
     Conditions:
         - VI_trade growing (delta7 > 0)
-        - Q component > 75
+        - D component (Dev Adoption) > threshold
         - G component growing (GitHub delta positive)
 
     Args:
@@ -257,13 +264,13 @@ def detect_quality_backed(
     if delta7 <= 0:
         return None
 
-    # Adaptive Q threshold: lower in early stage (< 7 days)
+    # Adaptive D threshold: lower in early stage (< 7 days)
     days_available = len(daily_rows)
-    q_threshold = 75 if days_available >= 7 else 60
+    d_threshold = 65 if days_available >= 7 else 50
 
-    # Check Q component
-    q_score = _get_component_score(model_id, "Q", calc_date)
-    if q_score is None or q_score <= q_threshold:
+    # Check D component (Dev Adoption — npm + PyPI downloads)
+    d_score = _get_component_score(model_id, "D", calc_date)
+    if d_score is None or d_score <= d_threshold:
         return None
 
     # Check G component growing
@@ -281,18 +288,22 @@ def detect_quality_backed(
     return {
         "model_id": model_id,
         "date": calc_date.isoformat(),
-        "signal_type": "quality_backed",
+        "signal_type": "adoption_backed",
         "direction": "bullish",
-        "strength": round(min(100, q_score * 0.6 + delta7 * 2), 2),
+        "strength": round(min(100, d_score * 0.6 + delta7 * 2), 2),
         "vi_trade": vi_trade,
-        "polymarket_odds": 0,
+        "polymarket_odds": 0,  # legacy field kept for DB schema compat
         "divergence_score": 0,
         "reasoning": (
-            f"VI_trade growing (d7={delta7:+.1f}), quality Q={q_score:.1f}>{q_threshold}, "
+            f"VI_trade growing (d7={delta7:+.1f}), DevAdoption D={d_score:.1f}>{d_threshold}, "
             f"GitHub G={g_score:.1f} trending up. Fundamentally supported."
         ),
         "expires_at": (calc_date + timedelta(days=7)).isoformat(),
     }
+
+
+# Backward-compatible alias
+detect_quality_backed = detect_adoption_backed
 
 
 def run_signal_detection(calc_date: date) -> list[dict[str, Any]]:
@@ -311,7 +322,7 @@ def run_signal_detection(calc_date: date) -> list[dict[str, Any]]:
     detectors = [
         detect_divergence,
         detect_momentum_breakout,
-        detect_quality_backed,
+        detect_adoption_backed,
     ]
 
     all_signals: list[dict[str, Any]] = []
