@@ -114,14 +114,14 @@ async function getModelData(slug: string) {
     .select('date, component, normalized_value, smoothed_value')
     .eq('model_id', model.id)
     .order('date', { ascending: false })
-    .limit(12) // T, S, G, N, Q, M × 2 days
+    .limit(12) // T, S, G, N, D, M × 2 days
 
   const LABELS: Record<string, string> = {
     T: 'Search Interest',
     S: 'Social Buzz',
-    G: 'Developer Adoption',
+    G: 'GitHub Activity',
     N: 'News Coverage',
-    Q: 'Quality Score',
+    D: 'Dev Adoption',
     M: 'Mindshare',
   }
 
@@ -156,6 +156,19 @@ async function getModelData(slug: string) {
       }
     })
 
+  // 3b. Get latest fetched_at from raw_metrics
+  let lastFetchedAt: string | null = null
+  if (latestRow) {
+    const { data: fetchedRow } = await supabase
+      .from('raw_metrics')
+      .select('fetched_at')
+      .eq('model_id', model.id)
+      .eq('date', latestRow.date)
+      .order('fetched_at', { ascending: false })
+      .limit(1)
+    lastFetchedAt = fetchedRow?.[0]?.fetched_at ?? null
+  }
+
   // 4. Get active signals
   const today = new Date().toISOString().split('T')[0]
   const { data: signalsRaw } = await supabase
@@ -186,6 +199,7 @@ async function getModelData(slug: string) {
     history,
     breakdown,
     signals,
+    lastFetchedAt,
   }
 }
 
@@ -219,6 +233,7 @@ export default async function ModelPage({
         history={data.history}
         breakdown={data.breakdown}
         signals={data.signals}
+        lastFetchedAt={data.lastFetchedAt}
       />
     </div>
   )

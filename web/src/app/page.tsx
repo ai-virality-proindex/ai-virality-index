@@ -146,7 +146,7 @@ export default async function Home() {
             <span className="text-slate-700">|</span>
             <span>GDELT News</span>
             <span className="text-slate-700">|</span>
-            <span>Polymarket</span>
+            <span>Wikipedia</span>
           </div>
         </div>
       </section>
@@ -281,7 +281,7 @@ export default async function Home() {
                 <h3 className="text-xl font-bold text-white">Trading Mode</h3>
               </div>
               <p className="text-sm text-slate-400 mb-5 leading-relaxed">
-                Optimized for Polymarket and Kalshi traders. Catches early attention shifts before odds move.
+                Optimized for prediction market and crypto traders. Catches early attention shifts before odds move.
               </p>
               <div className="space-y-2 text-sm text-slate-400">
                 <div className="flex items-center gap-2">
@@ -290,11 +290,11 @@ export default async function Home() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-avi-green">&#10003;</span>
-                  Market divergence detection
+                  Momentum divergence detection
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-avi-green">&#10003;</span>
-                  Quality-backed virality filter
+                  Dev adoption-backed virality filter
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-avi-green">&#10003;</span>
@@ -303,7 +303,7 @@ export default async function Home() {
               </div>
               <div className="mt-6 pt-5 border-t border-avi-border">
                 <p className="text-xs text-slate-600 mb-1">Formula weights</p>
-                <code className="text-xs text-slate-400">0.20T + 0.20S + 0.15G + 0.10N + 0.20Q + 0.15M</code>
+                <code className="text-xs text-slate-400">0.18T + 0.28S + 0.15G + 0.12N + 0.15D + 0.12M</code>
               </div>
             </div>
 
@@ -340,7 +340,7 @@ export default async function Home() {
               </div>
               <div className="mt-6 pt-5 border-t border-avi-border">
                 <p className="text-xs text-slate-600 mb-1">Formula weights</p>
-                <code className="text-xs text-slate-400">0.28T + 0.32S + 0.08G + 0.20N + 0.05Q + 0.07M</code>
+                <code className="text-xs text-slate-400">0.25T + 0.35S + 0.05G + 0.20N + 0.05D + 0.10M</code>
               </div>
             </div>
           </div>
@@ -360,8 +360,8 @@ export default async function Home() {
               { code: 'S', name: 'Social Buzz', desc: 'YouTube videos, views, engagement + Hacker News discussion', color: '#3B82F6' },
               { code: 'G', name: 'Developer Adoption', desc: 'GitHub stars, forks velocity, issue activity', color: '#8B5CF6' },
               { code: 'N', name: 'News Coverage', desc: 'GDELT global news mentions count and sentiment', color: '#F59E0B' },
-              { code: 'Q', name: 'Quality Score', desc: 'Arena Elo rating from head-to-head model comparisons', color: '#EC4899' },
-              { code: 'M', name: 'Market Conviction', desc: 'Polymarket prediction odds and trading volume', color: '#EF4444' },
+              { code: 'D', name: 'Dev Adoption', desc: 'npm + PyPI daily SDK downloads and growth', color: '#EC4899' },
+              { code: 'M', name: 'Mindshare', desc: 'Wikipedia pageview volume and trends', color: '#EF4444' },
             ].map((c) => (
               <div key={c.code} className="rounded-lg bg-avi-card border border-avi-border p-5 flex gap-4">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 font-bold text-white text-lg"
@@ -413,7 +413,7 @@ export default async function Home() {
               <ul className="space-y-3 text-sm text-slate-400 mb-8">
                 <li className="flex gap-2"><span className="text-avi-green">&#10003;</span> Real-time data (no delay)</li>
                 <li className="flex gap-2"><span className="text-avi-green">&#10003;</span> Full history</li>
-                <li className="flex gap-2"><span className="text-avi-green">&#10003;</span> Component breakdown (T/S/G/N/Q/M)</li>
+                <li className="flex gap-2"><span className="text-avi-green">&#10003;</span> Component breakdown (T/S/G/N/D/M)</li>
                 <li className="flex gap-2"><span className="text-avi-green">&#10003;</span> Trading signals + alerts</li>
                 <li className="flex gap-2"><span className="text-avi-green">&#10003;</span> API 600 req/min</li>
               </ul>

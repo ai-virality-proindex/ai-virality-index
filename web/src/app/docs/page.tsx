@@ -434,7 +434,7 @@ console.log(\`\${meta.name}: \${meta.from} to \${meta.to}\`);`,
             method="GET"
             path="/api/v1/breakdown"
             tier="Pro"
-            description="Get the 6-component breakdown (T, S, G, N, Q, M) for a model's virality score."
+            description="Get the 6-component breakdown (T, S, G, N, D, M) for a model's virality score."
             params={[
               {
                 name: 'model',
@@ -461,8 +461,8 @@ console.log(\`\${meta.name}: \${meta.from} to \${meta.to}\`);`,
       { "component": "S", "label": "Social", "normalized": 0.54, "smoothed": 0.55 },
       { "component": "G", "label": "GitHub", "normalized": 0.42, "smoothed": 0.42 },
       { "component": "N", "label": "News",   "normalized": 0.72, "smoothed": 0.71 },
-      { "component": "Q", "label": "Quality","normalized": 0.94, "smoothed": 0.94 },
-      { "component": "M", "label": "Market", "normalized": 0.89, "smoothed": 0.89 }
+      { "component": "D", "label": "Dev Adoption","normalized": 0.61, "smoothed": 0.62 },
+      { "component": "M", "label": "Mindshare", "normalized": 0.45, "smoothed": 0.46 }
     ]
   },
   "meta": { "date": "2026-02-17", "component_count": 6 }
@@ -528,7 +528,7 @@ data.components.forEach(c =>
       "signal_type": "divergence",
       "direction": "bullish",
       "strength": 85,
-      "reasoning": "VI rising while Polymarket odds stable",
+      "reasoning": "VI rising while dev adoption stable — momentum building",
       "expires_at": "2026-02-24"
     }
   ],

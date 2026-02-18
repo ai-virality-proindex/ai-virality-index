@@ -54,6 +54,7 @@ interface ModelDetailViewProps {
   history: HistoryPoint[]
   breakdown: ComponentData[]
   signals: Signal[]
+  lastFetchedAt: string | null
 }
 
 export default function ModelDetailView({
@@ -62,6 +63,7 @@ export default function ModelDetailView({
   history,
   breakdown,
   signals,
+  lastFetchedAt,
 }: ModelDetailViewProps) {
   const [mode, setMode] = useState<'trade' | 'content'>('trade')
 
@@ -167,7 +169,7 @@ export default function ModelDetailView({
                   </span>
                 </div>
                 <div className="pt-2 border-t border-avi-border">
-                  <UpdateCountdown lastDate={latestScore.date} variant="full" />
+                  <UpdateCountdown lastDate={lastFetchedAt || latestScore.date} variant="full" />
                 </div>
               </div>
             </div>

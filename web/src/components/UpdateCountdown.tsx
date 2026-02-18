@@ -37,19 +37,20 @@ function formatCountdown(ms: number): string {
 }
 
 function formatTime(dateStr: string): string {
-  // dateStr is ISO date like "2026-02-18" — show date only
-  // If it has time info, show time too
+  // If ISO timestamp with time (e.g. "2026-02-18T01:41:21+00:00"), show "Feb 18, 01:41 UTC"
   if (dateStr.includes('T')) {
     const d = new Date(dateStr)
-    return d.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    })
+    const month = d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' })
+    const day = d.getUTCDate()
+    const hh = String(d.getUTCHours()).padStart(2, '0')
+    const mm = String(d.getUTCMinutes()).padStart(2, '0')
+    return `${month} ${day}, ${hh}:${mm} UTC`
   }
-  return dateStr
+  // Plain date like "2026-02-18"
+  const d = new Date(dateStr + 'T00:00:00Z')
+  const month = d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' })
+  const day = d.getUTCDate()
+  return `${month} ${day}`
 }
 
 interface UpdateCountdownProps {

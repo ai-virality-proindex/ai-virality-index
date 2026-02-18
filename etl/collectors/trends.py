@@ -5,7 +5,12 @@ Queries interest_over_time for each model's search aliases,
 aggregates by taking the max interest across aliases per day,
 and computes a 7-day rolling average.
 
-Fallback: when pytrends gets 429'd, tries trendspy as an alternative.
+Fallback chain:
+1. pytrends — primary source
+2. trendspy — alternative endpoint when pytrends is 429'd
+3. Upstash Redis cache — if all live sources fail, return cached data
+
+On success: cache result to Redis (24h TTL) for resilience.
 """
 
 import logging
@@ -18,12 +23,16 @@ import pandas as pd
 from pytrends.request import TrendReq
 
 from .base import BaseCollector
+from etl.cache import cache_get, cache_set
 
 logger = logging.getLogger(__name__)
 
 # Max retries for 429 rate-limit errors
 MAX_429_RETRIES = 3
 INITIAL_BACKOFF_SECS = 10
+
+# Cache TTL: 24 hours
+CACHE_TTL_SECS = 86400
 
 
 class TrendsCollector(BaseCollector):
@@ -136,6 +145,11 @@ class TrendsCollector(BaseCollector):
             self.logger.warning(f"trendspy fallback failed: {e}")
             return None
 
+    def _cache_key(self, model_slug: str) -> str:
+        """Build Redis cache key for a model's trends data."""
+        today = date.today().isoformat()
+        return f"trends:{model_slug}:{today}"
+
     def fetch(self, model_slug: str, aliases: list[str]) -> dict[str, Any] | None:
         """
         Fetch Google Trends interest for a model.
@@ -144,7 +158,8 @@ class TrendsCollector(BaseCollector):
         the pytrends max). Takes the max interest value per day across
         all aliases, then computes a 7-day rolling average.
 
-        Falls back to trendspy if pytrends is blocked (429).
+        Fallback chain: pytrends → trendspy → Redis cache.
+        On success: writes result to Redis cache (24h TTL).
 
         Args:
             model_slug: Model identifier (e.g., 'chatgpt')
@@ -159,6 +174,7 @@ class TrendsCollector(BaseCollector):
             return None
 
         self.logger.info(f"Fetching trends for {model_slug} with {len(aliases)} aliases")
+        cache_key = self._cache_key(model_slug)
 
         # If pytrends was already blocked in this session, skip directly to trendspy
         if self._pytrends_blocked:
@@ -176,8 +192,12 @@ class TrendsCollector(BaseCollector):
                     "source": "trendspy_fallback",
                     "pytrends_blocked": True,
                 }
+                # Cache successful trendspy result
+                cache_set(cache_key, trendspy_data, ttl=CACHE_TTL_SECS)
                 return result
-            return None
+
+            # Last resort: try Redis cache
+            return self._fallback_to_cache(model_slug, aliases, cache_key)
 
         all_frames: list[pd.DataFrame] = []
 
@@ -211,12 +231,11 @@ class TrendsCollector(BaseCollector):
                     "source": "trendspy_fallback",
                     "pytrends_blocked": True,
                 }
+                cache_set(cache_key, trendspy_data, ttl=CACHE_TTL_SECS)
                 return result
 
-            self.logger.error(
-                f"All trends sources failed for {model_slug} (pytrends + trendspy)"
-            )
-            return None
+            # Last resort: try Redis cache
+            return self._fallback_to_cache(model_slug, aliases, cache_key)
 
         # Combine all batches, take max interest across aliases per timestamp
         combined = pd.concat(all_frames, axis=1)
@@ -236,12 +255,14 @@ class TrendsCollector(BaseCollector):
             if not pd.isna(val)
         }
 
+        metrics = {
+            "interest": round(interest, 2),
+            "interest_7d_avg": round(interest_7d_avg, 2),
+        }
+
         result = self.make_result(
             model_slug=model_slug,
-            metrics={
-                "interest": round(interest, 2),
-                "interest_7d_avg": round(interest_7d_avg, 2),
-            },
+            metrics=metrics,
         )
         result["raw_json"] = {
             "aliases_queried": aliases,
@@ -250,7 +271,36 @@ class TrendsCollector(BaseCollector):
             "num_datapoints": len(max_per_timestamp),
         }
 
+        # Cache successful result
+        cache_set(cache_key, metrics, ttl=CACHE_TTL_SECS)
+
         self.logger.info(
             f"Trends for {model_slug}: interest={interest:.1f}, 7d_avg={interest_7d_avg:.1f}"
         )
         return result
+
+    def _fallback_to_cache(
+        self, model_slug: str, aliases: list[str], cache_key: str
+    ) -> dict[str, Any] | None:
+        """Try Redis cache as last-resort fallback when all live sources fail."""
+        cached = cache_get(cache_key)
+        if cached:
+            self.logger.warning(
+                f"All live sources failed for {model_slug}, "
+                f"using Redis cached data"
+            )
+            result = self.make_result(
+                model_slug=model_slug,
+                metrics=cached,
+            )
+            result["raw_json"] = {
+                "aliases_queried": aliases,
+                "source": "redis_cache_fallback",
+            }
+            return result
+
+        self.logger.error(
+            f"All trends sources failed for {model_slug} "
+            f"(pytrends + trendspy + cache)"
+        )
+        return None

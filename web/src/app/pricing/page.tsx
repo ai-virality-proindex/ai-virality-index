@@ -24,11 +24,11 @@ const plans = [
     name: 'Pro Trader',
     price: '$29',
     period: '/month',
-    description: 'For Polymarket & prediction market traders',
+    description: 'For prediction market & crypto traders',
     features: [
       'Real-time data (no delay)',
       'Full historical data',
-      'Component breakdown (T/S/G/N/Q/M)',
+      'Component breakdown (T/S/G/N/D/M)',
       'Trading signals & divergence alerts',
       'API: 600 req/min',
       'Priority email support',
@@ -200,7 +200,7 @@ export default function PricingPage() {
             },
             {
               q: 'What\'s the difference between Trading and Content modes?',
-              a: 'Both modes are included in every plan. Trading mode weights market conviction higher, while Content mode emphasizes social virality.',
+              a: 'Both modes are included in every plan. Trading mode weights social and dev adoption higher, while Content mode emphasizes social virality.',
             },
             {
               q: 'Do I need an API key for the dashboard?',

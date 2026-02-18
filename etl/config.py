@@ -36,22 +36,24 @@ UPSTASH_REDIS_TOKEN = os.getenv("UPSTASH_REDIS_TOKEN", "")
 MODELS_CONFIG_PATH = Path(__file__).parent / "models_config.yaml"
 
 # --- Index Weights ---
+# Q (Arena Elo) removed from formula — static data, measures quality not virality.
+# Replaced with D (Dev Adoption) = npm + PyPI daily SDK downloads.
 WEIGHTS_TRADE = {
-    "T": 0.20,  # Trends (search interest)
-    "S": 0.20,  # Social (YouTube + HackerNews + Reddit when available)
-    "G": 0.15,  # GitHub (developer adoption)
-    "N": 0.10,  # News (GDELT mentions)
-    "Q": 0.20,  # Quality (Arena Elo)
-    "M": 0.15,  # Mindshare (Wikipedia pageviews — was Polymarket odds)
+    "T": 0.18,  # Trends (search interest)
+    "S": 0.28,  # Social (YouTube + HackerNews)
+    "G": 0.15,  # GitHub (star/fork velocity)
+    "N": 0.12,  # News (GDELT mentions)
+    "D": 0.15,  # Dev Adoption (npm + PyPI downloads)
+    "M": 0.12,  # Mindshare (Wikipedia pageviews)
 }
 
 WEIGHTS_CONTENT = {
-    "T": 0.28,  # Trends
-    "S": 0.32,  # Social (YouTube + HackerNews + Reddit when available)
-    "G": 0.08,  # GitHub
+    "T": 0.25,  # Trends
+    "S": 0.35,  # Social (YouTube + HackerNews)
+    "G": 0.05,  # GitHub
     "N": 0.20,  # News
-    "Q": 0.05,  # Quality
-    "M": 0.07,  # Mindshare (Wikipedia pageviews — was Polymarket odds)
+    "D": 0.05,  # Dev Adoption (npm + PyPI downloads)
+    "M": 0.10,  # Mindshare (Wikipedia pageviews)
 }
 
 # --- EWMA Smoothing ---

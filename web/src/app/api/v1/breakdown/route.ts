@@ -90,10 +90,10 @@ export async function GET(request: NextRequest) {
     const componentLabels: Record<string, string> = {
       T: 'Trends (Search Interest)',
       S: 'Social (YouTube + Discussion)',
-      G: 'GitHub (Developer Adoption)',
+      G: 'GitHub (Developer Activity)',
       N: 'News (GDELT Media)',
-      Q: 'Quality (Arena Elo + AA)',
-      M: 'Market (Polymarket Odds)',
+      D: 'Dev Adoption (npm + PyPI)',
+      M: 'Mindshare (Wikipedia)',
     }
 
     const breakdown = (components ?? []).map((c: any) => ({

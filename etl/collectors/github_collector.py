@@ -90,16 +90,17 @@ class GitHubCollector(BaseCollector):
             self.logger.warning(f"GitHub API error for {repo_full_name}: {e}")
             return None
 
-    def _get_yesterday_metrics(self, model_id: str) -> dict[str, float]:
+    def _get_previous_metrics(self, model_id: str) -> dict[str, float]:
         """
-        Fetch yesterday's GitHub metrics from raw_metrics for delta calculation.
+        Fetch the most recent previous GitHub metrics from raw_metrics for delta calculation.
+        Uses lt(today) + order desc instead of eq(yesterday) to handle gaps.
 
         Returns:
             Dict like {'total_stars': 12345, 'total_forks': 678} or empty dict.
         """
         from etl.storage.supabase_client import get_client
 
-        yesterday = (date.today() - timedelta(days=1)).isoformat()
+        today = date.today().isoformat()
         client = get_client()
 
         result = (
@@ -107,10 +108,12 @@ class GitHubCollector(BaseCollector):
             .select("metric_name, metric_value")
             .eq("model_id", model_id)
             .eq("source", "github")
-            .eq("date", yesterday)
+            .lt("date", today)
             .in_("metric_name", ["total_stars", "total_forks"])
-            .execute()
+            .order("date", desc=True)
+            .limit(2)
         )
+        result = result.execute()
 
         return {row["metric_name"]: float(row["metric_value"]) for row in result.data}
 
@@ -166,7 +169,7 @@ class GitHubCollector(BaseCollector):
             self.logger.error(f"All GitHub fetches failed for {model_slug}")
             return None
 
-        # Calculate deltas if we have yesterday's data
+        # Calculate deltas if we have previous data
         stars_delta = 0
         forks_delta = 0
         try:
@@ -174,11 +177,11 @@ class GitHubCollector(BaseCollector):
 
             model_id = get_mid(model_slug)
             if model_id:
-                yesterday = self._get_yesterday_metrics(model_id)
-                if "total_stars" in yesterday:
-                    stars_delta = total_stars - yesterday["total_stars"]
-                if "total_forks" in yesterday:
-                    forks_delta = total_forks - yesterday["total_forks"]
+                previous = self._get_previous_metrics(model_id)
+                if "total_stars" in previous:
+                    stars_delta = total_stars - previous["total_stars"]
+                if "total_forks" in previous:
+                    forks_delta = total_forks - previous["total_forks"]
         except Exception as e:
             self.logger.warning(f"Could not compute deltas for {model_slug}: {e}")
 

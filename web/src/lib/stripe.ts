@@ -19,7 +19,7 @@ export const PLANS = {
     features: [
       'Real-time data (no delay)',
       'Full history access',
-      'Component breakdown (T/S/G/N/Q/M)',
+      'Component breakdown (T/S/G/N/D/M)',
       'Trading signals & divergence alerts',
       'API: 600 req/min',
     ],

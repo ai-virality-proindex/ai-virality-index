@@ -13,6 +13,7 @@ interface DashboardViewProps {
   historyMap: Record<string, number[]>       // slug -> last N vi_trade values
   historyContentMap: Record<string, number[]> // slug -> last N vi_content values
   lastDate: string | null
+  lastFetchedAt: string | null
 }
 
 /**
@@ -24,6 +25,7 @@ export default function DashboardView({
   historyMap,
   historyContentMap,
   lastDate,
+  lastFetchedAt,
 }: DashboardViewProps) {
   const [mode, setMode] = useState<'trade' | 'content'>('trade')
 
@@ -48,7 +50,7 @@ export default function DashboardView({
           <h1 className="text-2xl font-bold text-white">Dashboard</h1>
           {lastDate && (
             <div className="mt-1">
-              <UpdateCountdown lastDate={lastDate} />
+              <UpdateCountdown lastDate={lastFetchedAt || lastDate} />
             </div>
           )}
         </div>

@@ -1218,9 +1218,9 @@ Full spec: docs/TECHNICAL_SPEC.md
 | Phase 7: Launch | Deploy ✅, Cron ✅, Git ✅ | ~IN PROGRESS | Feb 18, 2026 |
 | Phase 8: Verification | 8.1 ✅, 8.2 ✅, 8.3 ✅, 8.4 ✅ | ✅ DONE | Feb 18, 2026 |
 
-**Total tasks: 31**
-**Completed: 31/31 (Phase 8 complete — all verification tasks done)**
-**Current: Phase 8 DONE — ready for Phase 9+**
+**Total tasks: 33**
+**Completed: 33/33 (Phase 9.2 complete)**
+**Current: Phase 9 — data verification + UX improvements**
 
 ---
 
@@ -1255,3 +1255,5 @@ Full spec: docs/TECHNICAL_SPEC.md
 | 21 | Feb 18, 2026 | UpdateCountdown component: TradingView-style countdown timer showing time until next ETL update (every 6h: 00:00/06:00/12:00/18:00 UTC). Animated pulse dot + HH:MM:SS countdown. Two variants: compact (dashboard header) and full (model detail scores card). Added to DashboardView + ModelDetailView. Build OK. | UX polish |
 | 22 | Feb 18, 2026 | BreakdownRadar tooltips + delta arrows: Added COMPONENT_HINTS (source+desc for each component), CustomRadarTooltip, hover tooltips on legend, compact layout (gap-1.5), delta arrows (green up/red down, threshold 0.5). Fixed TS Map error (Record instead of Map). | Component audit |
 | 23 | Feb 18, 2026 | Component audit + M replacement: Full audit of all 6 components. M (Polymarket) was 100% dead (no AI markets). Replaced with Wikipedia Pageviews (free API, liquid data: ChatGPT=78K/day). New WikipediaCollector, seed script, 8 aliases in Supabase. Added trendspy fallback for T (Google Trends 429 protection). Updated frontend: M="Mindshare". 129/129 tests pass. Deployed. | Monitor Wikipedia data |
+| 24 | Feb 18, 2026 | Session 24 — Task 9.2: (1) Deep data analysis: 286 raw_metrics, 3 days (Feb 16-18). Found: G(GitHub) delta=0 always (15% of index dead), M(Wikipedia) 0 days (just added), Q(Arena) static (manual fallback), T 1-2 days, N 50% zeros, S 1-2 days. Min 7 days needed for quantile normalization. (2) Tooltips improved: simpler, jargon-free English for all 6 components. (3) Last Updated now shows "Feb 18, 01:41 UTC" instead of just date — fetched_at from raw_metrics, passed through dashboard+model pages. Build OK. | Wait for 7+ days data, fix GitHub delta |
+| 25 | Feb 18, 2026 | Session 25 — Task 9.3: Component overhaul (10 subtasks). (1) Fixed GitHub delta bug: _get_previous_metrics uses lt(date)+order desc instead of eq(yesterday). (2) Replaced Q(Arena Elo) with D(Dev Adoption = npm+PyPI downloads) everywhere — config.py weights (Trading: 0.18T+0.28S+0.15G+0.12N+0.15D+0.12M, Content: 0.25T+0.35S+0.05G+0.20N+0.05D+0.10M), index_calculator.py COMPONENT_SOURCES, all frontend files. (3) New DevAdoptionCollector (etl/collectors/devadoption.py) fetching npm Registry + PyPI Stats APIs. (4) Added devadoption_packages to models_config.yaml + seed script. (5) Added Trends Redis caching (etl/cache.py): cache on success, fallback to cache on 429 failure. (6) Deleted dead market.py (Polymarket). (7) Updated 12+ frontend files: page.tsx, docs, pricing, stripe, BreakdownRadar, breakdown API, model pages. (8) Updated CLAUDE.md formula. 129/129 tests pass. Build OK (45 pages). | Seed aliases to Supabase, push to GitHub, run ETL |

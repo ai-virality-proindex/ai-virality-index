@@ -38,17 +38,17 @@ class TestWeightConfiguration(unittest.TestCase):
         self.assertAlmostEqual(total, 1.0, places=9)
 
     def test_trade_weights_match_spec(self):
-        expected = {"T": 0.20, "S": 0.20, "G": 0.15, "N": 0.10, "Q": 0.20, "M": 0.15}
+        expected = {"T": 0.18, "S": 0.28, "G": 0.15, "N": 0.12, "D": 0.15, "M": 0.12}
         for k, v in expected.items():
             self.assertAlmostEqual(WEIGHTS_TRADE[k], v, places=9, msg=f"Weight {k}")
 
     def test_content_weights_match_spec(self):
-        expected = {"T": 0.28, "S": 0.32, "G": 0.08, "N": 0.20, "Q": 0.05, "M": 0.07}
+        expected = {"T": 0.25, "S": 0.35, "G": 0.05, "N": 0.20, "D": 0.05, "M": 0.10}
         for k, v in expected.items():
             self.assertAlmostEqual(WEIGHTS_CONTENT[k], v, places=9, msg=f"Weight {k}")
 
     def test_all_six_components_present(self):
-        components = {"T", "S", "G", "N", "Q", "M"}
+        components = {"T", "S", "G", "N", "D", "M"}
         self.assertEqual(set(WEIGHTS_TRADE.keys()), components)
         self.assertEqual(set(WEIGHTS_CONTENT.keys()), components)
 
@@ -247,7 +247,7 @@ class TestCalculateIndex(unittest.TestCase):
         result = calculate_index("fake-uuid", date(2026, 2, 18), mode="trade")
 
         self.assertAlmostEqual(result["vi_score"], 50.0)
-        for comp in ["T", "S", "G", "N", "Q", "M"]:
+        for comp in ["T", "S", "G", "N", "D", "M"]:
             self.assertAlmostEqual(result["components_smoothed"][comp], 50.0)
 
     @patch("etl.processing.index_calculator.get_raw_metrics")

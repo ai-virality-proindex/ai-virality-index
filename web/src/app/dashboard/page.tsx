@@ -32,6 +32,7 @@ async function getDashboardData(): Promise<{
   historyMap: Record<string, number[]>
   historyContentMap: Record<string, number[]>
   lastDate: string | null
+  lastFetchedAt: string | null
 }> {
   try {
     const supabase = createServerClient()
@@ -49,7 +50,7 @@ async function getDashboardData(): Promise<{
 
     if (latestErr || !latestRaw) {
       console.error('Dashboard: error fetching latest scores', latestErr)
-      return { scores: [], historyMap: {}, historyContentMap: {}, lastDate: null }
+      return { scores: [], historyMap: {}, historyContentMap: {}, lastDate: null, lastFetchedAt: null }
     }
 
     // Deduplicate — keep latest per model
@@ -77,6 +78,18 @@ async function getDashboardData(): Promise<{
 
     const lastDate = scores.length > 0 ? scores[0].date : null
 
+    // 1b. Fetch latest fetched_at timestamp from raw_metrics
+    let lastFetchedAt: string | null = null
+    if (lastDate) {
+      const { data: fetchedRow } = await supabase
+        .from('raw_metrics')
+        .select('fetched_at')
+        .eq('date', lastDate)
+        .order('fetched_at', { ascending: false })
+        .limit(1)
+      lastFetchedAt = fetchedRow?.[0]?.fetched_at ?? null
+    }
+
     // 2. Fetch 30-day history for sparklines
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 31)
@@ -103,15 +116,15 @@ async function getDashboardData(): Promise<{
       }
     }
 
-    return { scores, historyMap, historyContentMap, lastDate }
+    return { scores, historyMap, historyContentMap, lastDate, lastFetchedAt }
   } catch (err) {
     console.error('Dashboard: unexpected error', err)
-    return { scores: [], historyMap: {}, historyContentMap: {}, lastDate: null }
+    return { scores: [], historyMap: {}, historyContentMap: {}, lastDate: null, lastFetchedAt: null }
   }
 }
 
 export default async function DashboardPage() {
-  const { scores, historyMap, historyContentMap, lastDate } = await getDashboardData()
+  const { scores, historyMap, historyContentMap, lastDate, lastFetchedAt } = await getDashboardData()
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8">
@@ -120,6 +133,7 @@ export default async function DashboardPage() {
         historyMap={historyMap}
         historyContentMap={historyContentMap}
         lastDate={lastDate}
+        lastFetchedAt={lastFetchedAt}
       />
     </div>
   )

@@ -30,7 +30,7 @@ const COMPONENT_LABELS: Record<string, string> = {
   S: 'Social',
   G: 'GitHub',
   N: 'News',
-  Q: 'Quality',
+  D: 'Dev Adoption',
   M: 'Mindshare',
 }
 
@@ -39,17 +39,17 @@ const COMPONENT_COLORS: Record<string, string> = {
   S: '#3B82F6',
   G: '#8B5CF6',
   N: '#F59E0B',
-  Q: '#EC4899',
+  D: '#EC4899',
   M: '#EF4444',
 }
 
 const COMPONENT_HINTS: Record<string, { source: string; desc: string }> = {
-  T: { source: 'Google Trends', desc: 'Search volume and rising queries for the model' },
-  S: { source: 'YouTube + HackerNews', desc: 'Videos, views, engagement, and community discussion' },
-  G: { source: 'GitHub API', desc: 'Stars, forks velocity, and issue activity' },
-  N: { source: 'GDELT', desc: 'Global news mentions count and sentiment' },
-  Q: { source: 'LMArena', desc: 'Elo rating from head-to-head model comparisons' },
-  M: { source: 'Wikipedia', desc: 'Daily pageviews — measures public information-seeking interest' },
+  T: { source: 'Google Trends', desc: 'How often people search for this model on Google' },
+  S: { source: 'YouTube + HackerNews', desc: 'Video views, uploads, and developer community buzz' },
+  G: { source: 'GitHub API', desc: 'New stars and forks on open-source repositories' },
+  N: { source: 'GDELT', desc: 'How many news articles mention this model worldwide' },
+  D: { source: 'npm + PyPI', desc: 'How many developers download this model\'s SDK each day' },
+  M: { source: 'Wikipedia', desc: 'How many people read the Wikipedia page about this model' },
 }
 
 /** Threshold: deltas smaller than this are treated as "no change" */
@@ -89,7 +89,7 @@ function CustomRadarTooltip({ active, payload }: any) {
 }
 
 /**
- * Radar chart showing T/S/G/N/Q/M component breakdown.
+ * Radar chart showing T/S/G/N/D/M component breakdown.
  * Can be blurred for non-Pro users.
  */
 export default function BreakdownRadar({ data, modelColor, blurred = false }: BreakdownRadarProps) {

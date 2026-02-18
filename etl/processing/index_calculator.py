@@ -11,12 +11,12 @@ Component mapping:
     S: source in ('youtube','hackernews'), averaged
     G: source='github',      'stars_delta_1d' + 'forks_delta_1d'
     N: source='gdelt',       'article_count'
-    Q: source='arena',       'elo_rating'
-    M: source='wikipedia',   'pageviews_7d' (was 'polymarket'/'odds')
+    D: source='devadoption', 'downloads_daily' (was Q: arena/elo_rating)
+    M: source='wikipedia',   'pageviews_7d'
 
 Weights:
-    Trading: 0.20*T + 0.20*S + 0.15*G + 0.10*N + 0.20*Q + 0.15*M
-    Content: 0.28*T + 0.32*S + 0.08*G + 0.20*N + 0.05*Q + 0.07*M
+    Trading: 0.18*T + 0.28*S + 0.15*G + 0.12*N + 0.15*D + 0.12*M
+    Content: 0.25*T + 0.35*S + 0.05*G + 0.20*N + 0.05*D + 0.10*M
 """
 
 import logging
@@ -48,7 +48,7 @@ COMPONENT_SOURCES = {
     "S": [("youtube", "total_views_24h"), ("hackernews", "stories_24h")],
     "G": [("github", "stars_delta_1d"), ("github", "forks_delta_1d")],
     "N": [("gdelt", "article_count")],
-    "Q": [("arena", "elo_rating")],
+    "D": [("devadoption", "downloads_daily")],
     "M": [("wikipedia", "pageviews_7d")],
 }
 
@@ -120,7 +120,7 @@ def calculate_index(
     Returns:
         Dict with:
             vi_score: float (0-100),
-            components: {T: float, S: float, G: float, N: float, Q: float, M: float},
+            components: {T: float, S: float, G: float, N: float, D: float, M: float},
             smoothed_components: {T: float, ...},
     """
     weights = WEIGHTS_TRADE if mode == "trade" else WEIGHTS_CONTENT
@@ -130,7 +130,7 @@ def calculate_index(
     components_normalized: dict[str, float] = {}
     components_smoothed: dict[str, float] = {}
 
-    for comp_code in ["T", "S", "G", "N", "Q", "M"]:
+    for comp_code in ["T", "S", "G", "N", "D", "M"]:
         history = _fetch_component_history(model_id, comp_code, days=90)
 
         if not history:
@@ -162,7 +162,7 @@ def calculate_index(
     # Weighted sum
     vi_score = sum(
         weights[c] * components_smoothed[c]
-        for c in ["T", "S", "G", "N", "Q", "M"]
+        for c in ["T", "S", "G", "N", "D", "M"]
     )
     vi_score = round(max(0.0, min(100.0, vi_score)), 2)
 
@@ -338,7 +338,7 @@ def run_daily_calculation(calc_date: date) -> dict[str, Any]:
             vi_content = content_result["vi_score"]
 
             # Upsert component scores
-            for comp_code in ["T", "S", "G", "N", "Q", "M"]:
+            for comp_code in ["T", "S", "G", "N", "D", "M"]:
                 comp_row = {
                     "model_id": model_id,
                     "date": calc_date.isoformat(),
@@ -377,7 +377,7 @@ def run_daily_calculation(calc_date: date) -> dict[str, Any]:
 
             # Build component breakdown JSON
             breakdown = {}
-            for comp_code in ["T", "S", "G", "N", "Q", "M"]:
+            for comp_code in ["T", "S", "G", "N", "D", "M"]:
                 breakdown[comp_code] = trade_result["components_smoothed"].get(comp_code, 50)
 
             # Upsert daily scores

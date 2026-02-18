@@ -33,6 +33,7 @@ from etl.collectors.github_collector import GitHubCollector
 from etl.collectors.news import GDELTNewsCollector
 from etl.collectors.quality import QualityCollector
 from etl.collectors.wikipedia import WikipediaCollector
+from etl.collectors.devadoption import DevAdoptionCollector
 
 logging.basicConfig(
     level=logging.INFO,
@@ -47,8 +48,10 @@ COLLECTOR_REGISTRY: dict[str, tuple[type, str]] = {
     "hackernews": (HackerNewsCollector,   "hn_query"),
     "github":     (GitHubCollector,       "github_repo"),
     "gdelt":      (GDELTNewsCollector,    "gdelt_query"),
+    # arena: kept for metadata (Elo badge) but NOT in index formula (replaced by D)
     "arena":      (QualityCollector,      "arena_name"),
     "wikipedia":  (WikipediaCollector,     "wikipedia_article"),
+    "devadoption": (DevAdoptionCollector,  "devadoption_package"),
 }
 
 # Sources that are slow/fragile and need extra delay between models
