@@ -49,8 +49,8 @@ AVI's unique position: **model-level virality + trading mode + public API + mark
 | Social/Discussion | S | Reddit (PRAW) | Official | 60 req/min with OAuth |
 | Developer Adoption | G | GitHub | REST/GraphQL API | 5,000 req/hour (authenticated) |
 | News/Media | N | GDELT | DOC API (open) | No hard limit, be polite |
-| Quality/Credibility | Q | Arena Elo + AA Index | Scraping/API | Check availability |
-| Market Conviction | M | Polymarket | Gamma API | Public, no auth needed |
+| Dev Adoption | D | npm + PyPI SDK downloads | Registry APIs | Public, no auth needed |
+| Mindshare | M | Wikipedia pageviews | Wikimedia REST API | Public, no auth needed |
 
 **Excluded from MVP:** X/Twitter (API too expensive/restricted). Reddit + HN serve as social discussion proxy.
 
@@ -139,16 +139,16 @@ Public chart line: 7-day moving average (visually clearer).
 #### Mode 1: Trading Index
 
 ```
-VI_trade(m,t) = 0.20*T + 0.20*S + 0.15*G + 0.10*N + 0.20*Q + 0.15*M
+VI_trade(m,t) = 0.18*T + 0.28*S + 0.15*G + 0.12*N + 0.15*D + 0.12*M
 ```
 
 Weight rationale:
-- T (0.20): search demand as early signal
-- S (0.20): social spread speed
+- T (0.18): search demand as early signal
+- S (0.28): social spread speed
 - G (0.15): developer adoption confirms trend stickiness
-- N (0.10): news/PR catalysts
-- Q (0.20): quality anchor, prevents empty-hype signals
-- M (0.15): market conviction (Polymarket odds = skin-in-the-game signal)
+- N (0.12): news/PR catalysts
+- D (0.15): dev adoption anchor (npm + PyPI SDK downloads)
+- M (0.12): mindshare (Wikipedia pageviews)
 
 **Trading Signal** (composite with momentum):
 
@@ -164,16 +164,16 @@ All three sub-components normalized to 0-100.
 #### Mode 2: Content/Marketing Index
 
 ```
-VI_content(m,t) = 0.28*T + 0.32*S + 0.08*G + 0.20*N + 0.05*Q + 0.07*M
+VI_content(m,t) = 0.25*T + 0.35*S + 0.05*G + 0.20*N + 0.05*D + 0.10*M
 ```
 
 Weight rationale:
-- T (0.28): search demand = audience looking for explanations/guides
-- S (0.32): video/social = real content virality
-- G (0.08): developers matter less for content
+- T (0.25): search demand = audience looking for explanations/guides
+- S (0.35): video/social = real content virality
+- G (0.05): developers matter less for content
 - N (0.20): news events = content hooks
-- Q (0.05): quality as filter, not driver
-- M (0.07): market interest as minor boost
+- D (0.05): dev adoption as filter, not driver
+- M (0.10): mindshare (Wikipedia pageviews) as minor boost
 
 **Topic Heat:**
 

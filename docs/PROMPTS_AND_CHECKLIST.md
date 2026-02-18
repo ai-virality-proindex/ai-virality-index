@@ -1196,8 +1196,8 @@ Full spec: docs/TECHNICAL_SPEC.md
 - DB: Supabase, service_role key for ETL, anon key for frontend
 
 ## Index Formula
-- Trading: 0.20*T + 0.20*S + 0.15*G + 0.10*N + 0.20*Q + 0.15*M
-- Content: 0.28*T + 0.32*S + 0.08*G + 0.20*N + 0.05*Q + 0.07*M
+- Trading: 0.18*T + 0.28*S + 0.15*G + 0.12*N + 0.15*D + 0.12*M
+- Content: 0.25*T + 0.35*S + 0.05*G + 0.20*N + 0.05*D + 0.10*M
 - Normalization: Rolling quantile q05/q95 + Winsorize + EWMA
 - 7 models: chatgpt, gemini, claude, perplexity, deepseek, grok, copilot
 ```
