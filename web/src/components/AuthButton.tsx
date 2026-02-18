@@ -90,6 +90,15 @@ export default function AuthButton() {
             >
               Alerts
             </a>
+            {user.email === 'getdroneservices@gmail.com' && (
+              <a
+                href="/dashboard/trainer"
+                className="block px-4 py-2 text-sm text-slate-300 hover:bg-avi-dark hover:text-white transition-colors"
+                onClick={() => setMenuOpen(false)}
+              >
+                Trainer
+              </a>
+            )}
             <a
               href="/pricing"
               className="block px-4 py-2 text-sm text-slate-300 hover:bg-avi-dark hover:text-white transition-colors"

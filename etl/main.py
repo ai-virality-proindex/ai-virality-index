@@ -237,6 +237,22 @@ def run_pipeline(
         except Exception as e:
             logger.error(f"Alert checks failed: {e}")
 
+    # ── Step 5: Trainer Bet Resolution ──
+    trainer_result = {"resolved": 0, "won": 0, "lost": 0}
+    if not dry_run:
+        logger.info(f"\n{'='*60}")
+        logger.info("Step 5: Trainer Bet Resolution")
+        logger.info(f"{'='*60}")
+        try:
+            from etl.trainer import resolve_expired_bets
+            trainer_result = resolve_expired_bets(today)
+            logger.info(
+                f"{trainer_result['resolved']} bet(s) resolved: "
+                f"{trainer_result['won']} won, {trainer_result['lost']} lost."
+            )
+        except Exception as e:
+            logger.error(f"Trainer bet resolution failed: {e}")
+
     # ── Summary ──
     logger.info(f"\n{'='*60}")
     logger.info(f"ETL Pipeline Complete — {today}")
@@ -256,6 +272,10 @@ def run_pipeline(
         f"{alerts_result.get('triggered', 0)} triggered, "
         f"{alerts_result.get('delivered', 0)} delivered"
     )
+    logger.info(
+        f"Trainer: {trainer_result.get('resolved', 0)} bets resolved, "
+        f"{trainer_result.get('won', 0)} won, {trainer_result.get('lost', 0)} lost"
+    )
     if dry_run:
         logger.info("(DRY RUN — nothing was written to Supabase)")
     logger.info(f"{'='*60}")
@@ -270,6 +290,9 @@ def run_pipeline(
         "signals_detected": signals_detected,
         "alerts_triggered": alerts_result.get("triggered", 0),
         "alerts_delivered": alerts_result.get("delivered", 0),
+        "trainer_resolved": trainer_result.get("resolved", 0),
+        "trainer_won": trainer_result.get("won", 0),
+        "trainer_lost": trainer_result.get("lost", 0),
         "dry_run": dry_run,
         "skip_fetch": skip_fetch,
         "details": results_summary,
