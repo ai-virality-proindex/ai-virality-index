@@ -1105,9 +1105,11 @@ Help me with: [specific launch task]
 # PHASE 7: LAUNCH (2-3 days)
 # =====================
 
-## Manual Tasks (not Claude Code):
-- [ ] Enable GitHub Actions cron
-- [ ] Monitor 3 days of data collection
+## Launch Tasks:
+- [x] Enable GitHub Actions cron ✅ (Feb 18, 2026) — daily_etl.yml created, cron 0 12 * * *, first manual run SUCCESS (3m49s)
+- [x] Deploy frontend to Vercel ✅ (Feb 18, 2026) — Vercel project created, 7 env vars configured, build succeeded, LIVE at ai-virality-index.vercel.app
+- [x] Push code to GitHub ✅ (Feb 18, 2026) — initial commit (104 files), 8 GitHub secrets set, repo: ai-virality-proindex/ai-virality-index
+- [ ] Monitor 3 days of data collection — ETL cron runs daily at 12:00 UTC, first run OK
 - [ ] Verify data quality in Supabase
 - [ ] Switch Stripe to live mode
 - [ ] Set up custom domain on Vercel
@@ -1116,7 +1118,17 @@ Help me with: [specific launch task]
 - [ ] Post on Twitter/X, Reddit, HN
 - [ ] Set up newsletter (Beehiiv/Buttondown)
 
-### PHASE 7 COMPLETE: [ ]
+### What was done (Feb 18, 2026):
+- GitHub CLI installed, authenticated as ai-virality-proindex
+- First commit: 104 files, 22,219 insertions pushed to main branch
+- 8 GitHub repository secrets configured for ETL pipeline
+- GitHub Actions workflow (daily_etl.yml) created and manually triggered — completed successfully in 3m49s
+- Vercel account created, GitHub App installed, project imported with root directory = `web`
+- 7 environment variables added to Vercel (Supabase, Upstash, Stripe)
+- Production deployment succeeded — LIVE at https://ai-virality-index.vercel.app
+- Site shows index score 49 (Neutral), all 7 models, full navigation working
+
+### PHASE 7 IN PROGRESS: [~] (deployment done, monitoring started)
 
 ---
 ---
@@ -1176,11 +1188,11 @@ Full spec: docs/TECHNICAL_SPEC.md
 | Phase 4: Dashboard | 4.1 ✅, 4.2 ✅, 4.3 ✅, 4.4 ✅ | Done | Feb 17, 2026 |
 | Phase 5: Auth/Payments | 5.1 ✅, 5.2 ✅, 5.3 ✅ | ✅ DONE | Feb 17, 2026 |
 | Phase 6: Polish | 6.1 ✅, 6.2 ✅, 6.3 ✅, 6.4 ✅ | ✅ DONE | Feb 17, 2026 |
-| Phase 7: Launch | Manual | [ ] | |
+| Phase 7: Launch | Deploy ✅, Cron ✅, Git ✅ | ~IN PROGRESS | Feb 18, 2026 |
 
 **Total tasks: 27**
 **Completed: 27/27**
-**Current: Phase 6 COMPLETE — Phase 7 (Launch) is manual**
+**Current: Phase 7 IN PROGRESS — deployed to Vercel, ETL cron active, monitoring data**
 
 ---
 
