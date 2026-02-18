@@ -15,6 +15,7 @@ with most articles falling between -5 and +5.
 
 import logging
 import time
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from urllib.parse import quote
 
@@ -25,7 +26,7 @@ from .base import BaseCollector
 logger = logging.getLogger(__name__)
 
 GDELT_DOC_API = "https://api.gdeltproject.org/api/v2/doc/doc"
-REQUEST_DELAY_SECS = 2.0  # be polite — GDELT is free, no hard limit
+REQUEST_DELAY_SECS = 6.0  # GDELT enforces 1 request per 5 seconds
 
 
 class GDELTNewsCollector(BaseCollector):
@@ -53,10 +54,10 @@ class GDELTNewsCollector(BaseCollector):
         """
         params = {
             "query": f"{query} sourcelang:english",
-            "mode": "artlist",
+            "mode": "ArtList",
             "maxrecords": "250",
             "format": "json",
-            "timespan": "24h",
+            "timespan": "72h",
         }
 
         # Retry up to 3 times with exponential backoff for 429s
@@ -111,9 +112,9 @@ class GDELTNewsCollector(BaseCollector):
         """
         params = {
             "query": f"{query} sourcelang:english",
-            "mode": "tonechart",
+            "mode": "ToneChart",
             "format": "json",
-            "timespan": "24h",
+            "timespan": "72h",
         }
 
         try:
@@ -171,15 +172,36 @@ class GDELTNewsCollector(BaseCollector):
             f"Fetching GDELT news for {model_slug} with {len(aliases)} aliases"
         )
 
-        # Build OR query: "term1" OR "term2" OR ...
-        query = " OR ".join(f'"{alias}"' for alias in aliases)
+        # Build OR query: ("term1" OR "term2" OR ...)
+        # GDELT requires OR'd terms to be wrapped in parentheses
+        if len(aliases) > 1:
+            query = "(" + " OR ".join(f'"{alias}"' for alias in aliases) + ")"
+        else:
+            query = f'"{aliases[0]}"'
 
-        # Step 1: Get article list
+        # Step 1: Get article list (72h window, then filter to last 24h)
         data = self._query_gdelt(query)
 
-        articles = []
+        all_articles = []
         if data and "articles" in data:
-            articles = data["articles"]
+            all_articles = data["articles"]
+
+        # Filter to last 24h by seendate (format: "20260218T191500Z")
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+        articles = []
+        for art in all_articles:
+            seendate = art.get("seendate", "")
+            if seendate:
+                try:
+                    dt = datetime.strptime(seendate, "%Y%m%dT%H%M%SZ").replace(
+                        tzinfo=timezone.utc
+                    )
+                    if dt >= cutoff:
+                        articles.append(art)
+                except ValueError:
+                    articles.append(art)  # include if date unparseable
+            else:
+                articles.append(art)
 
         article_count = len(articles)
 

@@ -91,7 +91,7 @@ def detect_divergence(
     Returns:
         Signal dict or None if no divergence detected.
     """
-    # Get VI_trade history
+    # Get VI_trade history — need at least 8 days for meaningful delta7
     daily_rows = _get_daily_scores_series(model_id, days=30)
     if len(daily_rows) < 8:
         return None
@@ -161,11 +161,9 @@ def detect_momentum_breakout(
     """
     Detect momentum breakout: strong virality not yet reflected in odds.
 
-    Conditions:
-        - VI_trade > 70
-        - delta7 > 15
-        - acceleration > 0
-        - Polymarket odds grew < 5pp in last 7 days
+    Uses adaptive thresholds based on available data:
+    - With 7+ days of data: VI > 65, delta7 > 10
+    - Full thresholds (14+ days): VI > 70, delta7 > 15
 
     Args:
         model_id: UUID of the model.
@@ -176,7 +174,7 @@ def detect_momentum_breakout(
     """
     # Get latest daily_scores
     daily_rows = _get_daily_scores_series(model_id, days=14)
-    if not daily_rows:
+    if len(daily_rows) < 3:
         return None
 
     latest = daily_rows[-1]
@@ -184,8 +182,17 @@ def detect_momentum_breakout(
     delta7 = float(latest.get("delta7_trade") or 0)
     accel = float(latest.get("accel_trade") or 0)
 
+    # Adaptive thresholds: stricter with more history
+    days_available = len(daily_rows)
+    if days_available >= 14:
+        vi_threshold, delta_threshold = 70, 15
+    elif days_available >= 7:
+        vi_threshold, delta_threshold = 65, 10
+    else:
+        vi_threshold, delta_threshold = 60, 5
+
     # Check VI conditions
-    if vi_trade <= 70 or delta7 <= 15 or accel <= 0:
+    if vi_trade <= vi_threshold or delta7 <= delta_threshold or accel <= 0:
         return None
 
     # Check odds movement
@@ -211,7 +218,7 @@ def detect_momentum_breakout(
         "polymarket_odds": float(odds_rows[-1]["metric_value"]) if odds_rows else 0,
         "divergence_score": round(delta7 - odds_grew, 3),
         "reasoning": (
-            f"VI_trade={vi_trade:.1f}>70, delta7={delta7:+.1f}>15, "
+            f"VI_trade={vi_trade:.1f}>{vi_threshold}, delta7={delta7:+.1f}>{delta_threshold}, "
             f"accel={accel:+.1f}>0, but odds only moved {odds_grew:+.1f}pp."
         ),
         "expires_at": (calc_date + timedelta(days=5)).isoformat(),
@@ -250,9 +257,13 @@ def detect_quality_backed(
     if delta7 <= 0:
         return None
 
-    # Check Q component > 75
+    # Adaptive Q threshold: lower in early stage (< 7 days)
+    days_available = len(daily_rows)
+    q_threshold = 75 if days_available >= 7 else 60
+
+    # Check Q component
     q_score = _get_component_score(model_id, "Q", calc_date)
-    if q_score is None or q_score <= 75:
+    if q_score is None or q_score <= q_threshold:
         return None
 
     # Check G component growing
@@ -277,7 +288,7 @@ def detect_quality_backed(
         "polymarket_odds": 0,
         "divergence_score": 0,
         "reasoning": (
-            f"VI_trade growing (d7={delta7:+.1f}), quality Q={q_score:.1f}>75, "
+            f"VI_trade growing (d7={delta7:+.1f}), quality Q={q_score:.1f}>{q_threshold}, "
             f"GitHub G={g_score:.1f} trending up. Fundamentally supported."
         ),
         "expires_at": (calc_date + timedelta(days=7)).isoformat(),

@@ -181,11 +181,11 @@
         <div class="overall-progress">
             <h2>Общий прогресс</h2>
             <div class="progress-bar-outer">
-                <div class="progress-bar-inner" style="width: 100%;">100%</div>
+                <div class="progress-bar-inner" style="width: 85%;">85%</div>
             </div>
             <div class="progress-stats">
-                <span>Выполнено задач: 27 из 27</span>
-                <span>Phase 7 из 7 — LIVE!</span>
+                <span>Выполнено задач: 29 из 35</span>
+                <span>Phase 7 из 9 — Аудит впереди</span>
             </div>
         </div>
 
@@ -543,9 +543,12 @@ RULES:
                     <p class="phase-desc">Деплой, проверка данных, Product Hunt, посты в соцсетях, рассылка</p>
                     <ul class="tasks-list">
                         <li class="task-done"><span class="task-icon">&#10003;</span> Код на GitHub (104 файла, 8 секретов)</li>
-                        <li class="task-done"><span class="task-icon">&#10003;</span> GitHub Actions cron (ежедневно 12:00 UTC, первый запуск OK)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> GitHub Actions cron (каждые 6ч, 2 успешных запуска)</li>
                         <li class="task-done"><span class="task-icon">&#10003;</span> Деплой на Vercel (ai-virality-index.vercel.app — LIVE!)</li>
-                        <li class="task-active"><span class="task-icon">&#9679;</span> 3 дня мониторинга данных</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> Верификация данных (7 моделей, 161 метрика/запуск, 0 ошибок)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> E2E верификация (тесты 42/42, build OK, API OK, Vercel OK)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> Фикс ETL: resilience (502 retry), GDELT (OR query), сигналы (адаптивные пороги)</li>
+                        <li class="task-active"><span class="task-icon">&#9679;</span> 3 дня мониторинга данных (день 2 из 3)</li>
                         <li class="task-future"><span class="task-icon">&#9675;</span> Подключить домен (Vercel + Cloudflare)</li>
                         <li class="task-future"><span class="task-icon">&#9675;</span> Переключить Stripe на live-режим</li>
                         <li class="task-future"><span class="task-icon">&#9675;</span> Запустить на Product Hunt</li>
@@ -578,6 +581,219 @@ RULES:
 2. After each task - update docs/roadmap.html (icons, progress %, badges)
 3. Roadmap: E:\2026\AI Virality Index\ai-virality-index\docs\roadmap.html</pre>
                             <p class="prompt-hint">Используй когда Phase 6 завершена</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== PHASE 8 ==================== -->
+            <div class="phase">
+                <div class="phase-dot future"></div>
+                <div class="phase-card future">
+                    <div class="phase-header">
+                        <span class="phase-title">Phase 8: Аудит и тестирование</span>
+                        <span class="phase-badge badge-future">Впереди</span>
+                    </div>
+                    <p class="phase-desc">Верификация всего проекта end-to-end, поиск багов, код-ревью, написание тестов (используем Superpowers)</p>
+                    <ul class="tasks-list">
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 8.1 — Верификация: проверить что всё работает end-to-end</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 8.2 — Дебаг: найти и исправить все ошибки</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 8.3 — Код-ревью: полный аудит ETL + Web</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 8.4 — TDD: написать тесты для непокрытых модулей</li>
+                    </ul>
+                    <p class="phase-time">Оценка: 2-3 дня</p>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> 8.1 — Верификация (superpowers:verification)
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>/superpowers:verification-before-completion
+
+Проект: AI Virality Index (E:\2026\AI Virality Index\ai-virality-index\)
+
+Проверь что ВСЁ реально работает end-to-end:
+
+1. ETL pipeline:
+   python -m etl.main --dry-run
+   python -m pytest etl/tests/ -v
+
+2. Web build:
+   cd web && npm run build
+
+3. API routes (запусти dev server и проверь):
+   /api/v1/models — должен вернуть 7 моделей
+   /api/v1/index/latest — должен вернуть данные
+   /api/v1/index/history?model=chatgpt&amp;days=30
+
+4. Supabase — есть ли данные в таблицах:
+   daily_scores, raw_metrics, component_scores, signals
+
+5. GitHub Actions — последний запуск cron successful?
+
+6. Vercel deployment — сайт живой на ai-virality-index.vercel.app?
+
+Для каждого пункта: запусти команду, покажи результат, отметь ОК или ПРОБЛЕМА.</pre>
+                            <p class="prompt-hint">Первый шаг — понять что работает, а что сломано</p>
+                        </div>
+                    </div>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> 8.2 — Систематический дебаг (superpowers:debugging)
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>/superpowers:systematic-debugging
+
+Проект: AI Virality Index (E:\2026\AI Virality Index\ai-virality-index\)
+
+Проблемы которые я заметил:
+[ОПИШИ КОНКРЕТНЫЕ ОШИБКИ — URLs, скриншоты, поведение]
+
+Дополнительно проверь:
+- Запусти ETL: python -m etl.main --dry-run — есть ли ошибки?
+- Запусти тесты: python -m pytest etl/tests/ -v
+- Собери фронтенд: cd web &amp;&amp; npm run build — есть ли ошибки TypeScript?
+- Проверь API: curl localhost:3000/api/v1/models и /api/v1/index/latest
+- Проверь что данные в Supabase корректны (daily_scores, raw_metrics)
+
+Прочитай etl/main.py, etl/processing/index_calculator.py, web/src/middleware.ts
+для понимания полного pipeline.</pre>
+                            <p class="prompt-hint">Вставь конкретные ошибки которые нашёл перед запуском</p>
+                        </div>
+                    </div>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> 8.3 — Код-ревью (superpowers:code-review)
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>/superpowers:requesting-code-review
+
+Проект: AI Virality Index (E:\2026\AI Virality Index\ai-virality-index\)
+Прочитай docs/TECHNICAL_SPEC.md для понимания требований.
+
+Проведи полный код-ревью:
+
+ETL (Python):
+- etl/main.py — оркестратор
+- etl/processing/index_calculator.py — формула индекса
+- etl/processing/normalizer.py — нормализация
+- etl/processing/signal_detector.py — сигналы
+- etl/collectors/*.py — все коллекторы
+- etl/storage/supabase_client.py — работа с БД
+
+Web (TypeScript):
+- web/src/middleware.ts — rate limiting + auth
+- web/src/app/api/v1/ — все API routes
+- web/src/app/dashboard/page.tsx — дашборд
+- web/src/components/ — компоненты
+
+Проверь: безопасность, edge cases, обработка ошибок, соответствие TECHNICAL_SPEC, типизация, SQL injection, API key exposure.</pre>
+                            <p class="prompt-hint">Полный аудит всего кода проекта</p>
+                        </div>
+                    </div>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> 8.4 — TDD: тесты (superpowers:tdd)
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>/superpowers:test-driven-development
+
+Проект: AI Virality Index (E:\2026\AI Virality Index\ai-virality-index\)
+
+Сейчас тесты есть только для normalizer и smoother (42 теста).
+Напиши тесты для непокрытых модулей:
+
+1. etl/processing/index_calculator.py — calculate_index, calculate_momentum, run_daily_calculation
+2. etl/processing/signal_detector.py — все 3 детектора
+3. etl/collectors/ — mock-тесты для каждого коллектора (без реальных API вызовов)
+4. etl/alerts.py — проверка условий, webhook отправка
+
+Используй pytest + unittest.mock для внешних зависимостей.
+Сначала напиши тесты, потом проверь что текущий код их проходит.</pre>
+                            <p class="prompt-hint">Покрытие тестами всех критических модулей</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== PHASE 9 ==================== -->
+            <div class="phase">
+                <div class="phase-dot future"></div>
+                <div class="phase-card future">
+                    <div class="phase-header">
+                        <span class="phase-title">Phase 9: Улучшения и новые источники</span>
+                        <span class="phase-badge badge-future">Впереди</span>
+                    </div>
+                    <p class="phase-desc">Анализ формулы индекса, добавление новых источников данных (Crunchbase, X/Twitter), план масштабирования</p>
+                    <ul class="tasks-list">
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 9.1 — Брейншторм: новые источники данных (Crunchbase, X, ProductHunt)</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 9.2 — План улучшений: веса формулы, качество данных, UX</li>
+                    </ul>
+                    <p class="phase-time">Оценка: 2-3 дня</p>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> 9.1 — Брейншторм: новые источники (superpowers:brainstorming)
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>/superpowers:brainstorming
+
+Проект: AI Virality Index (E:\2026\AI Virality Index\ai-virality-index\)
+Прочитай docs/TECHNICAL_SPEC.md и etl/processing/index_calculator.py
+
+Задача: проанализировать, стоит ли добавить новые источники данных в индекс:
+
+1. Crunchbase — инвестиции в AI-компании (раунды, суммы, оценки)
+2. Twitter/X mentions API — упоминания моделей в соцсетях
+3. ProductHunt launches — запуски AI-продуктов
+4. Stack Overflow trends — вопросы по AI-моделям
+5. ArXiv papers — научные публикации
+6. App Store rankings — рейтинги AI-приложений
+
+Для каждого источника обсудить:
+- Что он измеряет и как влияет на вирусность
+- Доступность API (бесплатный/платный, лимиты)
+- В какой компонент формулы вписывается (T/S/G/N/Q/M) или нужен новый
+- Как изменятся веса формулы
+- Cost-benefit: стоит ли effort
+
+Текущая формула:
+Trading: 0.20*T + 0.20*S + 0.15*G + 0.10*N + 0.20*Q + 0.15*M
+Content: 0.28*T + 0.32*S + 0.08*G + 0.20*N + 0.05*Q + 0.07*M</pre>
+                            <p class="prompt-hint">Анализ новых источников данных для индекса</p>
+                        </div>
+                    </div>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> 9.2 — План улучшений (superpowers:writing-plans)
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>/superpowers:writing-plans
+
+Проект: AI Virality Index (E:\2026\AI Virality Index\ai-virality-index\)
+Прочитай docs/TECHNICAL_SPEC.md и docs/PROMPTS_AND_CHECKLIST.md
+
+Напиши план улучшений на основе анализа:
+
+1. Логика расчёта индекса — адекватны ли веса? Не нужно ли пересмотреть на основе реальных данных?
+2. Новые источники данных (Crunchbase, X/Twitter, ProductHunt, ArXiv)
+3. Качество данных — какие коллекторы ненадёжны (pytrends 429, Polymarket без рынков)?
+4. UX/UI — что улучшить на дашборде?
+5. Масштабирование — что сломается при росте?
+6. Монетизация — правильны ли тарифы $29/$99?
+
+Для каждого пункта: приоритет (P0/P1/P2), effort (часы), impact (low/med/high).</pre>
+                            <p class="prompt-hint">Стратегический план развития проекта</p>
                         </div>
                     </div>
                 </div>

@@ -130,7 +130,18 @@ def run_pipeline(
                 _, alias_type = COLLECTOR_REGISTRY[source_name]
 
                 # Get aliases for this model+source
-                aliases = get_aliases(model_id, alias_type)
+                try:
+                    aliases = get_aliases(model_id, alias_type)
+                except Exception as e:
+                    logger.error(f"  {source_name}: failed to fetch aliases — {e}")
+                    total_errors += 1
+                    results_summary.append({
+                        "model": slug,
+                        "source": source_name,
+                        "metrics": 0,
+                        "status": f"ERROR: aliases fetch failed — {e}",
+                    })
+                    continue
 
                 try:
                     result = collector.fetch(slug, aliases)

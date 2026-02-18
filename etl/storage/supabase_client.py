@@ -4,6 +4,7 @@ Uses service_role key for full access (bypasses RLS).
 """
 
 import logging
+import time
 from datetime import date
 from typing import Any
 from uuid import UUID
@@ -53,7 +54,7 @@ def get_model_id(slug: str) -> str | None:
 
 def get_aliases(model_id: str, alias_type: str) -> list[str]:
     """
-    Get aliases for a model by type.
+    Get aliases for a model by type. Retries up to 3 times on transient errors.
 
     Args:
         model_id: UUID of the model
@@ -63,14 +64,25 @@ def get_aliases(model_id: str, alias_type: str) -> list[str]:
         List of alias strings.
     """
     client = get_client()
-    result = (
-        client.table("model_aliases")
-        .select("alias_value")
-        .eq("model_id", model_id)
-        .eq("alias_type", alias_type)
-        .execute()
-    )
-    return [row["alias_value"] for row in result.data]
+    last_error = None
+    for attempt in range(3):
+        try:
+            result = (
+                client.table("model_aliases")
+                .select("alias_value")
+                .eq("model_id", model_id)
+                .eq("alias_type", alias_type)
+                .execute()
+            )
+            return [row["alias_value"] for row in result.data]
+        except Exception as e:
+            last_error = e
+            wait = (attempt + 1) * 5
+            logger.warning(
+                f"get_aliases failed (attempt {attempt+1}/3): {e}, retrying in {wait}s"
+            )
+            time.sleep(wait)
+    raise last_error  # type: ignore[misc]
 
 
 def get_all_models() -> list[dict[str, Any]]:

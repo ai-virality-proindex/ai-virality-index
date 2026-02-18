@@ -1106,11 +1106,11 @@ Help me with: [specific launch task]
 # =====================
 
 ## Launch Tasks:
-- [x] Enable GitHub Actions cron ✅ (Feb 18, 2026) — daily_etl.yml created, cron 0 12 * * *, first manual run SUCCESS (3m49s)
+- [x] Enable GitHub Actions cron ✅ (Feb 18, 2026) — daily_etl.yml created, cron `0 */6 * * *` (every 6h), first manual run SUCCESS (3m49s)
 - [x] Deploy frontend to Vercel ✅ (Feb 18, 2026) — Vercel project created, 7 env vars configured, build succeeded, LIVE at ai-virality-index.vercel.app
 - [x] Push code to GitHub ✅ (Feb 18, 2026) — initial commit (104 files), 8 GitHub secrets set, repo: ai-virality-proindex/ai-virality-index
-- [ ] Monitor 3 days of data collection — ETL cron runs daily at 12:00 UTC, first run OK
-- [ ] Verify data quality in Supabase
+- [~] Monitor 3 days of data collection — ETL cron every 6h (00/06/12/18 UTC), 2 successful runs so far, 2 days of data (Feb 16-18)
+- [x] Verify data quality in Supabase ✅ (Feb 18, 2026) — 7/7 models, 161 metrics/run, 49 OK fetches, 0 errors. API returns correct data. Dashboard shows real scores.
 - [ ] Switch Stripe to live mode
 - [ ] Set up custom domain on Vercel
 - [ ] Verify Cloudflare SSL + caching
@@ -1127,8 +1127,35 @@ Help me with: [specific launch task]
 - 7 environment variables added to Vercel (Supabase, Upstash, Stripe)
 - Production deployment succeeded — LIVE at https://ai-virality-index.vercel.app
 - Site shows index score 49 (Neutral), all 7 models, full navigation working
+- ETL frequency increased from 1x/day to 4x/day (every 6 hours) — quota analysis: YouTube 28% (2828/10000), safe
+- Second manual ETL run: SUCCESS (3m25s), 49 OK, 0 errors, 161 metrics
+- Data quality verified: 7 models with differentiated scores (43-53.5 range), mini-charts showing trends
+- GDELT occasional 429s (non-blocking, graceful degradation)
 
-### PHASE 7 IN PROGRESS: [~] (deployment done, monitoring started)
+## TASK 7.2 — End-to-End Verification ✅ COMPLETED (Feb 18, 2026)
+
+### What was done:
+- Full end-to-end verification of all project components:
+  - ETL tests: 42/42 passed
+  - ETL dry-run: Supabase 502 (transient Cloudflare error) crashed pipeline mid-run — resilience improvement needed
+  - Web build: npm run build OK (42 pages, exit 0)
+  - API /models: OK (7 models returned)
+  - API /index/latest: OK (7 models with scores, date 2026-02-17)
+  - API /index/history: OK (returns data, but only 2 days available — expected for new project)
+  - Supabase: daily_scores=21 rows, raw_metrics=286, component_scores=126, signals=0 (empty)
+  - GitHub Actions: last 2 runs SUCCESS (3m25s, 3m49s)
+  - Vercel: LIVE at ai-virality-index.vercel.app, market avg 49
+- Identified action items: ETL 502 resilience, signals generation, GDELT non-JSON responses
+
+## TASK 7.3 — Fix ETL Issues from Verification ✅ COMPLETED (Feb 18, 2026)
+
+### What was done:
+- **ETL resilience**: Added try/except around `get_aliases()` call in main.py so Supabase 502/5xx doesn't crash pipeline — logs error, skips source, continues. Also added 3-retry with 5s/10s/15s backoff inside `get_aliases()` itself.
+- **GDELT fix**: Root cause was OR queries need parentheses in GDELT (`("term1" OR "term2")`). Also increased timespan 24h→72h (GDELT indexing is delayed), added 24h filtering by `seendate`, increased inter-request delay to 6s (GDELT enforces 5s), fixed mode casing to `ArtList`/`ToneChart`.
+- **Signal thresholds**: Made adaptive based on data history length. With <7 days: VI>60/d7>5/Q>60. With 7-14 days: VI>65/d7>10. Full thresholds (14+ days): VI>70/d7>15/Q>75. Prevents signals from being permanently silent in early stage.
+- **Verified**: 42/42 tests pass, GDELT dry-run no errors, web build OK
+
+### PHASE 7 IN PROGRESS: [~] (deployment + data verification done, monitoring continues)
 
 ---
 ---
@@ -1220,3 +1247,5 @@ Full spec: docs/TECHNICAL_SPEC.md
 | 14 | Feb 17, 2026 | Tasks 5.2+5.3 done: API key management (/api/keys GET/POST/DELETE, /dashboard/keys page with create/list/revoke/copy-to-clipboard, max 5 keys, SHA-256 hash storage). Stripe integration (stripe v20.3.1, stripe.ts helpers with PLANS config + getOrCreatePrice, /api/stripe/checkout + webhook + portal routes, pricing page with 3 tiers + FAQ). Webhook handles checkout.session.completed→pro, subscription.deleted→free. Build OK (29 pages). PHASE 5 COMPLETE. | Phase 6, Task 6.1 |
 | 15 | Feb 17, 2026 | Task 6.1 done: Alerts system — alerts+alert_history tables (Supabase SQL Editor), etl/alerts.py (5 condition types, webhook delivery, alert_history recording), /api/alerts CRUD (GET/POST/PATCH/DELETE, Zod, Pro-only, max 20), /api/alerts/history (last 50), /dashboard/alerts page (create form, active/history tabs, pause/resume/delete), main.py Step 4 (alert checks after signals), AuthButton "Alerts" link. Build OK (3.38 kB alerts page). ETL pipeline tested. | Phase 6, Task 6.2 |
 | 16 | Feb 18, 2026 | Phase 7 launch: gh CLI installed, git push (104 files), 8 GitHub secrets, daily_etl.yml cron (12:00 UTC, first run SUCCESS 3m49s, 49 OK/0 errors/161 metrics), Vercel account+project created, 7 env vars, production deploy LIVE at ai-virality-index.vercel.app. Auto-deploy on push confirmed. All pages verified: landing (score 49), dashboard (7 models, heatmap, sparklines), model detail (ChatGPT 43), compare (3-model chart), pricing, API (/v1/index/latest returns 7 models). Local ETL --skip-fetch OK (7/7 models). | Monitor data 3 days |
+| 17 | Feb 18, 2026 | E2E verification: ETL tests 42/42 OK, web build OK (42 pages), API routes OK (3/3), GH Actions OK (2/2 success), Vercel LIVE. Issues found: ETL dry-run crashed on Supabase 502 (transient), signals table empty, GDELT returning 0 articles, only 3 days of data. | Fix ETL resilience, monitor data |
+| 18 | Feb 18, 2026 | Fixed 3 issues: (1) ETL resilience — get_aliases() retry 3x + try/except in main.py loop, (2) GDELT — parenthesized OR queries, 72h window, 6s delay, (3) Signal thresholds — adaptive based on data history. All verified: 42/42 tests, dry-run OK, build OK. | Push to GitHub, monitor next ETL run |
