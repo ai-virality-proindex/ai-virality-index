@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Virality Index — Roadmap</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0f172a;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 40px 20px;
+        }
+
+        .container { max-width: 960px; margin: 0 auto; }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle { text-align: center; color: #94a3b8; font-size: 1.1em; margin-bottom: 12px; }
+        .last-updated { text-align: center; color: #64748b; font-size: 0.85em; margin-bottom: 40px; }
+
+        /* Progress bar */
+        .overall-progress {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 24px 32px;
+            margin-bottom: 40px;
+            border: 1px solid #334155;
+        }
+        .overall-progress h2 { font-size: 1em; color: #94a3b8; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .progress-bar-outer { background: #334155; border-radius: 12px; height: 32px; overflow: hidden; margin-bottom: 8px; }
+        .progress-bar-inner {
+            background: linear-gradient(90deg, #10b981, #3b82f6);
+            height: 100%; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 0.9em; color: white; min-width: 60px;
+            transition: width 0.5s ease;
+        }
+        .progress-stats { display: flex; justify-content: space-between; color: #64748b; font-size: 0.85em; }
+
+        /* Goal block */
+        .goal-block {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid #334155; border-radius: 16px;
+            padding: 24px 32px; margin-bottom: 40px;
+        }
+        .goal-block h2 { color: #f59e0b; margin-bottom: 16px; font-size: 1.2em; }
+        .goal-block p { color: #cbd5e1; line-height: 1.7; margin-bottom: 8px; }
+        .goal-block .highlight { color: #10b981; font-weight: bold; }
+
+        /* Timeline */
+        .timeline { position: relative; padding-left: 40px; }
+        .timeline::before {
+            content: ''; position: absolute; left: 15px; top: 0; bottom: 0;
+            width: 3px; background: #334155; border-radius: 3px;
+        }
+
+        .phase { position: relative; margin-bottom: 32px; }
+
+        .phase-dot {
+            position: absolute; left: -33px; top: 20px;
+            width: 20px; height: 20px; border-radius: 50%;
+            border: 3px solid #334155; background: #0f172a; z-index: 1;
+        }
+        .phase-dot.done { background: #10b981; border-color: #10b981; }
+        .phase-dot.active { background: #f59e0b; border-color: #f59e0b; animation: pulse 2s infinite; }
+        .phase-dot.future { background: #1e293b; border-color: #475569; }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+        }
+
+        .phase-card {
+            background: #1e293b; border: 1px solid #334155;
+            border-radius: 12px; padding: 20px 24px; transition: all 0.3s ease;
+        }
+        .phase-card.done { border-color: #10b981; opacity: 0.85; }
+        .phase-card.active { border-color: #f59e0b; box-shadow: 0 0 20px rgba(245, 158, 11, 0.1); }
+        .phase-card.future { opacity: 0.6; }
+
+        .phase-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .phase-title { font-size: 1.2em; font-weight: bold; }
+
+        .phase-badge {
+            font-size: 0.75em; padding: 4px 12px; border-radius: 20px;
+            font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .badge-done { background: #064e3b; color: #10b981; }
+        .badge-active { background: #78350f; color: #f59e0b; }
+        .badge-future { background: #1e293b; color: #64748b; border: 1px solid #475569; }
+
+        .phase-desc { color: #94a3b8; margin-bottom: 16px; line-height: 1.5; }
+        .tasks-list { list-style: none; }
+        .tasks-list li { padding: 6px 0; display: flex; align-items: flex-start; gap: 8px; color: #cbd5e1; font-size: 0.95em; }
+        .task-icon { flex-shrink: 0; width: 20px; text-align: center; }
+        .task-done .task-icon { color: #10b981; }
+        .task-active .task-icon { color: #f59e0b; }
+        .task-future .task-icon { color: #475569; }
+        .phase-time { margin-top: 12px; font-size: 0.8em; color: #64748b; }
+
+        /* Prompt block */
+        .prompt-section { margin-top: 16px; }
+        .prompt-toggle {
+            background: #0f172a; border: 1px solid #475569; border-radius: 8px;
+            color: #f59e0b; padding: 10px 16px; cursor: pointer; width: 100%;
+            text-align: left; font-size: 0.9em; font-weight: 600;
+            display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+        }
+        .prompt-toggle:hover { border-color: #f59e0b; background: #1a2332; }
+        .prompt-toggle .arrow { transition: transform 0.3s; font-size: 0.8em; }
+        .prompt-toggle.open .arrow { transform: rotate(90deg); }
+
+        .prompt-content {
+            display: none; margin-top: 8px;
+            background: #0a0f1a; border: 1px solid #334155; border-radius: 8px;
+            padding: 16px; position: relative;
+        }
+        .prompt-content.show { display: block; }
+        .prompt-content pre {
+            color: #a5f3fc; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.82em; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;
+            margin: 0;
+        }
+
+        .copy-btn {
+            position: absolute; top: 8px; right: 8px;
+            background: #334155; border: 1px solid #475569; border-radius: 6px;
+            color: #94a3b8; padding: 6px 14px; cursor: pointer;
+            font-size: 0.8em; font-weight: 500; transition: all 0.2s;
+        }
+        .copy-btn:hover { background: #475569; color: #e2e8f0; }
+        .copy-btn.copied { background: #064e3b; color: #10b981; border-color: #10b981; }
+
+        .prompt-hint {
+            margin-top: 8px; font-size: 0.78em; color: #64748b;
+            font-style: italic;
+        }
+
+        /* Final destination */
+        .destination {
+            background: linear-gradient(135deg, #064e3b, #0f172a);
+            border: 2px solid #10b981; border-radius: 16px;
+            padding: 32px; margin-top: 40px; text-align: center;
+        }
+        .destination h2 { color: #10b981; font-size: 1.5em; margin-bottom: 16px; }
+        .destination p { color: #cbd5e1; line-height: 1.8; max-width: 600px; margin: 0 auto; }
+        .destination .money { color: #f59e0b; font-weight: bold; font-size: 1.1em; }
+
+        /* Legend */
+        .legend { display: flex; justify-content: center; gap: 24px; margin: 30px 0; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.85em; color: #94a3b8; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .legend-dot.green { background: #10b981; }
+        .legend-dot.yellow { background: #f59e0b; }
+        .legend-dot.gray { background: #475569; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Virality Index</h1>
+        <p class="subtitle">Roadmap: от идеи до запуска</p>
+        <p class="last-updated">Последнее обновление: 17 февраля 2026</p>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot green"></div> Сделано</div>
+            <div class="legend-item"><div class="legend-dot yellow"></div> Сейчас работаем</div>
+            <div class="legend-item"><div class="legend-dot gray"></div> Впереди</div>
+        </div>
+
+        <!-- Overall Progress -->
+        <div class="overall-progress">
+            <h2>Общий прогресс</h2>
+            <div class="progress-bar-outer">
+                <div class="progress-bar-inner" style="width: 100%;">100%</div>
+            </div>
+            <div class="progress-stats">
+                <span>Выполнено задач: 27 из 27</span>
+                <span>Phase 6 из 7</span>
+            </div>
+        </div>
+
+        <!-- Goal -->
+        <div class="goal-block">
+            <h2>Цель проекта</h2>
+            <p>Создать <span class="highlight">AI Virality Index</span> — публичный индекс 0-100 для AI-моделей (ChatGPT, Gemini, Claude, DeepSeek, Grok, Perplexity, Copilot).</p>
+            <p>Аналог <span class="highlight">Fear & Greed Index</span>, но для AI. Два режима: Trading (для трейдеров на Polymarket) и Content (для блогеров/маркетологов).</p>
+            <p>Монетизация: подписки $29-$499/мес, API, партнёрские ссылки, контент.</p>
+        </div>
+
+        <!-- Timeline -->
+        <div class="timeline">
+
+            <!-- ==================== PHASE 0 ==================== -->
+            <div class="phase">
+                <div class="phase-dot done"></div>
+                <div class="phase-card done">
+                    <div class="phase-header">
+                        <span class="phase-title">Phase 0: Фундамент</span>
+                        <span class="phase-badge badge-done">Готово</span>
+                    </div>
+                    <p class="phase-desc">Настройка инфраструктуры — аккаунты, база данных, структура проекта</p>
+                    <ul class="tasks-list">
+                        <li class="task-done"><span class="task-icon">&#10003;</span> Создать аккаунты (Supabase, YouTube API, Reddit, Upstash, Stripe)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> Установить Python 3.11 + Node.js 24</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> Инициализировать проект (ETL на Python + Web на Next.js)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> Создать схему базы данных (8 таблиц) и загрузить в Supabase</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> Заполнить справочник моделей (7 моделей, 60 алиасов)</li>
+                    </ul>
+                    <p class="phase-time">Завершено: 16 февраля 2026</p>
+                </div>
+            </div>
+
+            <!-- ==================== PHASE 1 ==================== -->
+            <div class="phase">
+                <div class="phase-dot done"></div>
+                <div class="phase-card done">
+                    <div class="phase-header">
+                        <span class="phase-title">Phase 1: Сбор данных (ETL)</span>
+                        <span class="phase-badge badge-done">Готово</span>
+                    </div>
+                    <p class="phase-desc">Собираем данные из 7 источников: Google Trends, YouTube, HackerNews, GitHub, GDELT новости, Arena рейтинги, Polymarket ставки</p>
+                    <ul class="tasks-list">
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 1.1 — Google Trends коллектор + клиент Supabase</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 1.2 — YouTube коллектор (видео, просмотры, вовлечённость)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 1.3 — Hacker News коллектор (stories, comments, points)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 1.4 — GitHub коллектор (звёзды, форки, issues, дельта)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 1.5 — Новостной коллектор GDELT (статьи, тон, 429 retry)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 1.6 — Arena Elo рейтинги + Polymarket ставки</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 1.7 — Главный оркестратор (--model, --source, --dry-run)</li>
+                    </ul>
+                    <p class="phase-time">Завершено: 16 февраля 2026</p>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> Промпт для продолжения Phase 1
+                        </button>
+                        <div class="prompt-content" id="prompt-phase1">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>I'm building the AI Virality Index project.
+Project path: E:\2026\AI Virality Index\ai-virality-index\
+
+Phase 0 DONE:
+- Task 0.1 ✅: mono-repo, Python 3.11 + Node.js 24, all deps
+- Task 0.2 ✅: DB schema deployed to Supabase (8 tables, 7 models, 74 aliases)
+
+Phase 1 IN PROGRESS (4/24 done, 17%):
+- Task 1.1 ✅: supabase_client.py (6 functions) + TrendsCollector (pytrends, 429 retry) — tested with live Supabase
+- Task 1.2 ⬜: YouTube collector — NOT YET DONE, this is the NEXT task
+- Task 1.3 ✅: HackerNews collector built (hackernews.py) — replaces Reddit as social source. Reddit API was rejected, re-application submitted. HN Algolia API (free, no auth), 14 hn_query aliases seeded in Supabase, tested live, upsert verified
+- Tasks 1.4-1.7 ⬜: GitHub, GDELT, Arena/Polymarket, Orchestrator — not started
+
+Python: C:/Users/Alexe/AppData/Local/Programs/Python/Python311/python.exe
+Node: C:/Program Files/nodejs/
+
+Read @E:\2026\AI Virality Index\ai-virality-index\docs\TECHNICAL_SPEC.md
+Read @E:\2026\AI Virality Index\ai-virality-index\docs\PROMPTS_AND_CHECKLIST.md
+
+NOW DO: Task 1.2 — build YouTube collector (etl/collectors/youtube.py).
+See PROMPTS_AND_CHECKLIST.md under "TASK 1.2" for the exact prompt and checklist.
+
+RULES:
+1. After each task - update PROMPTS_AND_CHECKLIST.md (mark ✅ with date + "What was done")
+2. After each task - update docs/roadmap.html (icons, progress bar %, phase badge)
+3. When context runs low - give me a RESUME PROMPT to paste into a new session
+4. Roadmap: E:\2026\AI Virality Index\ai-virality-index\docs\roadmap.html</pre>
+                            <p class="prompt-hint">Скопируй и вставь в новый чат Claude Desktop</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== PHASE 2 ==================== -->
+            <div class="phase">
+                <div class="phase-dot done"></div>
+                <div class="phase-card done">
+                    <div class="phase-header">
+                        <span class="phase-title">Phase 2: Расчёт индекса</span>
+                        <span class="phase-badge badge-done">Готово</span>
+                    </div>
+                    <p class="phase-desc">Математика: нормализация данных, расчёт индекса 0-100, моментум, сигналы дивергенции</p>
+                    <ul class="tasks-list">
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 2.1 — Нормализатор (quantile scaling) + сглаживание (EWMA)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 2.2 — Калькулятор индекса (Trading + Content режимы)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 2.3 — Детектор сигналов (дивергенция с Polymarket)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 2.4 — Обновить оркестратор (fetch + calculate + signals)</li>
+                    </ul>
+                    <p class="phase-time">Завершено: 16 февраля 2026</p>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> Промпт для продолжения Phase 2
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>I'm building the AI Virality Index project.
+Project path: E:\2026\AI Virality Index\ai-virality-index\
+
+Phase 0 ✅: mono-repo, Python 3.11 + Node.js 24, DB schema (8 tables, 7 models, 74 aliases)
+Phase 1 ✅: all 7 ETL collectors built and tested:
+  - 1.1 ✅: TrendsCollector (pytrends, 429 retry) + supabase_client.py
+  - 1.2 ✅: YouTubeCollector (Data API v3, OR-combined queries, 707 units/run)
+  - 1.3 ✅: HackerNewsCollector (Algolia API, 14 hn_query aliases)
+  - 1.4 ✅: GitHubCollector (REST API, authenticated, delta_1d)
+  - 1.5 ✅: GDELTNewsCollector (DOC API, artlist+tonechart, 429 retry)
+  - 1.6 ✅: QualityCollector (Arena Elo fallback chain) + PolymarketCollector (Gamma API)
+  - 1.7 ✅: main.py orchestrator (--model, --source, --dry-run)
+
+Python: C:/Users/Alexe/AppData/Local/Programs/Python/Python311/python.exe
+Node: C:/Program Files/nodejs/
+
+Read @E:\2026\AI Virality Index\ai-virality-index\docs\TECHNICAL_SPEC.md
+Read @E:\2026\AI Virality Index\ai-virality-index\docs\PROMPTS_AND_CHECKLIST.md
+
+Now start Phase 2, Task 2.1: Build normalizer + smoother modules.
+See PROMPTS_AND_CHECKLIST.md under "TASK 2.1" for the exact prompt and checklist.
+
+RULES:
+1. After each task - update PROMPTS_AND_CHECKLIST.md (mark ✅ with date + "What was done")
+2. After each task - update docs/roadmap.html (icons, progress bar %, phase badge)
+3. When context runs low - give me a RESUME PROMPT to paste into a new session
+4. Roadmap: E:\2026\AI Virality Index\ai-virality-index\docs\roadmap.html</pre>
+                            <p class="prompt-hint">Phase 1 завершена — используй этот промпт для старта Phase 2</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== PHASE 3 ==================== -->
+            <div class="phase">
+                <div class="phase-dot done"></div>
+                <div class="phase-card done">
+                    <div class="phase-header">
+                        <span class="phase-title">Phase 3: API</span>
+                        <span class="phase-badge badge-done">Готово</span>
+                    </div>
+                    <p class="phase-desc">Публичное API для доступа к данным индекса + Pro-эндпоинты для подписчиков</p>
+                    <ul class="tasks-list">
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 3.1 — Публичные API маршруты (/models, /index/latest, /history)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 3.2 — Rate limiting + авторизация по API-ключам</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 3.3 — Pro API (/breakdown, /signals, /compare)</li>
+                    </ul>
+                    <p class="phase-time">Завершено: 17 февраля 2026</p>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> Промпт для старта Phase 3
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>I'm building the AI Virality Index project.
+Project path: E:\2026\AI Virality Index\ai-virality-index\
+
+Phase 0 DONE: mono-repo, DB schema deployed
+Phase 1 DONE: all ETL collectors built and tested
+Phase 2 DONE: normalizer, smoother, index calculator, signal detector working
+
+Python: C:/Users/Alexe/AppData/Local/Programs/Python/Python311/python.exe
+Node: C:/Program Files/nodejs/
+
+Read @E:\2026\AI Virality Index\ai-virality-index\docs\TECHNICAL_SPEC.md
+Read @E:\2026\AI Virality Index\ai-virality-index\docs\PROMPTS_AND_CHECKLIST.md
+
+Now start Phase 3, Task 3.1: Build public API routes (Next.js).
+See PROMPTS_AND_CHECKLIST.md for the exact prompt and checklist.
+
+RULES:
+1. After each task - update PROMPTS_AND_CHECKLIST.md (mark done + date)
+2. After each task - update docs/roadmap.html (icons, progress %, badges)
+3. When context runs low - give me a RESUME PROMPT for new session
+4. Roadmap: E:\2026\AI Virality Index\ai-virality-index\docs\roadmap.html</pre>
+                            <p class="prompt-hint">Используй когда Phase 2 завершена</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== PHASE 4 ==================== -->
+            <div class="phase">
+                <div class="phase-dot done"></div>
+                <div class="phase-card done">
+                    <div class="phase-header">
+                        <span class="phase-title">Phase 4: Dashboard</span>
+                        <span class="phase-badge badge-done">Готово</span>
+                    </div>
+                    <p class="phase-desc">Красивый веб-интерфейс как у крипто-дашбордов — графики, карточки моделей, сравнение</p>
+                    <ul class="tasks-list">
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 4.1 — Landing page (лендинг с живыми данными)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 4.2 — Главный дашборд (gauge, heatmap, top movers)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 4.3 — Страница модели (графики, radar chart, сигналы)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 4.4 — Сравнение моделей (наложение графиков)</li>
+                    </ul>
+                    <p class="phase-time">Завершено: 17 февраля 2026</p>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> Промпт для старта Phase 4
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>I'm building the AI Virality Index project.
+Project path: E:\2026\AI Virality Index\ai-virality-index\
+
+Phase 0 DONE: mono-repo, DB schema
+Phase 1 DONE: all ETL collectors
+Phase 2 DONE: index calculation + signals
+Phase 3 DONE: API routes + rate limiting + auth
+
+Python: C:/Users/Alexe/AppData/Local/Programs/Python/Python311/python.exe
+Node: C:/Program Files/nodejs/
+
+Read @E:\2026\AI Virality Index\ai-virality-index\docs\TECHNICAL_SPEC.md
+Read @E:\2026\AI Virality Index\ai-virality-index\docs\PROMPTS_AND_CHECKLIST.md
+
+Now start Phase 4, Task 4.1: Build the landing page.
+See PROMPTS_AND_CHECKLIST.md for the exact prompt and checklist.
+
+RULES:
+1. After each task - update PROMPTS_AND_CHECKLIST.md (mark done + date)
+2. After each task - update docs/roadmap.html (icons, progress %, badges)
+3. When context runs low - give me a RESUME PROMPT for new session
+4. Roadmap: E:\2026\AI Virality Index\ai-virality-index\docs\roadmap.html</pre>
+                            <p class="prompt-hint">Используй когда Phase 3 завершена</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== PHASE 5 ==================== -->
+            <div class="phase">
+                <div class="phase-dot done"></div>
+                <div class="phase-card done">
+                    <div class="phase-header">
+                        <span class="phase-title">Phase 5: Авторизация и платежи</span>
+                        <span class="phase-badge badge-done">Готово</span>
+                    </div>
+                    <p class="phase-desc">Регистрация пользователей, управление API-ключами, подписки через Stripe</p>
+                    <ul class="tasks-list">
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 5.1 — Авторизация через Supabase (magic link, OAuth)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 5.2 — Управление API-ключами (создание, отзыв)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 5.3 — Stripe подписки ($29/$99/$499 в месяц)</li>
+                    </ul>
+                    <p class="phase-time">Завершено: 17 февраля 2026</p>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> Промпт для старта Phase 5
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>I'm building the AI Virality Index project.
+Project path: E:\2026\AI Virality Index\ai-virality-index\
+
+Phase 0-3 DONE: mono-repo, DB, ETL, index calc, API
+Phase 4 DONE: landing page, dashboard, model pages, comparison
+
+Python: C:/Users/Alexe/AppData/Local/Programs/Python/Python311/python.exe
+Node: C:/Program Files/nodejs/
+
+Read @E:\2026\AI Virality Index\ai-virality-index\docs\TECHNICAL_SPEC.md
+Read @E:\2026\AI Virality Index\ai-virality-index\docs\PROMPTS_AND_CHECKLIST.md
+
+Now start Phase 5, Task 5.1: Set up Supabase Auth.
+See PROMPTS_AND_CHECKLIST.md for the exact prompt and checklist.
+
+RULES:
+1. After each task - update PROMPTS_AND_CHECKLIST.md (mark done + date)
+2. After each task - update docs/roadmap.html (icons, progress %, badges)
+3. When context runs low - give me a RESUME PROMPT for new session
+4. Roadmap: E:\2026\AI Virality Index\ai-virality-index\docs\roadmap.html</pre>
+                            <p class="prompt-hint">Используй когда Phase 4 завершена</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== PHASE 6 ==================== -->
+            <div class="phase">
+                <div class="phase-dot done"></div>
+                <div class="phase-card">
+                    <div class="phase-header">
+                        <span class="phase-title">Phase 6: Полировка</span>
+                        <span class="phase-badge badge-done">Готово</span>
+                    </div>
+                    <p class="phase-desc">Алерты, виджеты, документация API, SEO, мониторинг ошибок</p>
+                    <ul class="tasks-list">
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 6.1 — Система алертов (email/webhook при сигналах)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 6.2 — Встраиваемый виджет (iframe для сайтов)</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 6.3 — Страница документации API</li>
+                        <li class="task-done"><span class="task-icon">&#10003;</span> 6.4 — SEO, OG-теги, Sentry, 404, скелетоны</li>
+                    </ul>
+                    <p class="phase-time">Оценка: 3-5 дней</p>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> Промпт для старта Phase 6
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>I'm building the AI Virality Index project.
+Project path: E:\2026\AI Virality Index\ai-virality-index\
+
+Phase 0-4 DONE: mono-repo, DB, ETL, index calc, API, dashboard
+Phase 5 DONE: Supabase Auth, API key management, Stripe subscriptions
+
+Python: C:/Users/Alexe/AppData/Local/Programs/Python/Python311/python.exe
+Node: C:/Program Files/nodejs/
+
+Read @E:\2026\AI Virality Index\ai-virality-index\docs\TECHNICAL_SPEC.md
+Read @E:\2026\AI Virality Index\ai-virality-index\docs\PROMPTS_AND_CHECKLIST.md
+
+Now start Phase 6, Task 6.1: Build alerts system.
+See PROMPTS_AND_CHECKLIST.md for the exact prompt and checklist.
+
+RULES:
+1. After each task - update PROMPTS_AND_CHECKLIST.md (mark done + date)
+2. After each task - update docs/roadmap.html (icons, progress %, badges)
+3. When context runs low - give me a RESUME PROMPT for new session
+4. Roadmap: E:\2026\AI Virality Index\ai-virality-index\docs\roadmap.html</pre>
+                            <p class="prompt-hint">Используй когда Phase 5 завершена</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== PHASE 7 ==================== -->
+            <div class="phase">
+                <div class="phase-dot future"></div>
+                <div class="phase-card future">
+                    <div class="phase-header">
+                        <span class="phase-title">Phase 7: Запуск</span>
+                        <span class="phase-badge badge-future">Впереди</span>
+                    </div>
+                    <p class="phase-desc">Деплой, проверка данных, Product Hunt, посты в соцсетях, рассылка</p>
+                    <ul class="tasks-list">
+                        <li class="task-future"><span class="task-icon">&#9675;</span> Включить ежедневный автозапуск (GitHub Actions cron)</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> 3 дня мониторинга данных</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> Подключить домен (Vercel + Cloudflare)</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> Переключить Stripe на live-режим</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> Запустить на Product Hunt</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> Посты на Twitter/X, Reddit, Hacker News</li>
+                        <li class="task-future"><span class="task-icon">&#9675;</span> Запустить еженедельную рассылку</li>
+                    </ul>
+                    <p class="phase-time">Оценка: 2-3 дня</p>
+
+                    <div class="prompt-section">
+                        <button class="prompt-toggle" onclick="togglePrompt(this)">
+                            <span class="arrow">&#9654;</span> Промпт для старта Phase 7
+                        </button>
+                        <div class="prompt-content">
+                            <button class="copy-btn" onclick="copyPrompt(this)">Копировать</button>
+<pre>I'm building the AI Virality Index project.
+Project path: E:\2026\AI Virality Index\ai-virality-index\
+
+Phase 0-6 DONE: everything built - ETL, index calc, API, dashboard, auth, payments, alerts, polish
+
+Python: C:/Users/Alexe/AppData/Local/Programs/Python/Python311/python.exe
+Node: C:/Program Files/nodejs/
+
+Read @E:\2026\AI Virality Index\ai-virality-index\docs\PROMPTS_AND_CHECKLIST.md
+
+Phase 7: Launch. Help me with deployment and launch tasks.
+See PROMPTS_AND_CHECKLIST.md for the Phase 7 checklist.
+
+RULES:
+1. After each task - update PROMPTS_AND_CHECKLIST.md (mark done + date)
+2. After each task - update docs/roadmap.html (icons, progress %, badges)
+3. Roadmap: E:\2026\AI Virality Index\ai-virality-index\docs\roadmap.html</pre>
+                            <p class="prompt-hint">Используй когда Phase 6 завершена</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Final destination -->
+        <div class="destination">
+            <h2>Финальная точка</h2>
+            <p>
+                Работающий сайт с ежедневно обновляемым индексом виральности AI-моделей.
+                Публичный дашборд + Pro API для трейдеров и контент-мейкеров.
+            </p>
+            <p style="margin-top: 16px;">
+                <span class="money">Цель Month 1:</span> 100 DAU, 10 Pro-подписчиков, $300 MRR<br>
+                <span class="money">Цель Month 6:</span> 5000 DAU, 200 Pro-подписчиков, $8000 MRR
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+        function togglePrompt(btn) {
+            btn.classList.toggle('open');
+            const content = btn.nextElementSibling;
+            content.classList.toggle('show');
+        }
+
+        function copyPrompt(btn) {
+            const pre = btn.parentElement.querySelector('pre');
+            navigator.clipboard.writeText(pre.textContent).then(() => {
+                btn.textContent = 'Скопировано!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Копировать';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

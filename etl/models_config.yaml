@@ -1,0 +1,140 @@
+# AI Virality Index — Model Aliases Dictionary
+# Used by ETL collectors to map models to search terms, repos, subreddits, etc.
+
+models:
+  chatgpt:
+    name: "ChatGPT"
+    company: "OpenAI"
+    color: "#10A37F"
+    search_queries:
+      - "ChatGPT"
+      - "GPT-4"
+      - "GPT-4o"
+      - "GPT-5"
+      - "OpenAI ChatGPT"
+    github_repos:
+      - "openai/openai-python"
+      - "openai/openai-node"
+    subreddit: "ChatGPT"
+    hn_queries:
+      - "ChatGPT"
+      - "GPT-4"
+      - "OpenAI"
+    gdelt_queries:
+      - "ChatGPT"
+      - "OpenAI GPT"
+    arena_name: "GPT-4o"
+
+  gemini:
+    name: "Gemini"
+    company: "Google"
+    color: "#4285F4"
+    search_queries:
+      - "Gemini AI"
+      - "Google Gemini"
+      - "Gemini 2"
+      - "Gemini 2.5"
+    github_repos:
+      - "google/generative-ai-python"
+      - "google/generative-ai-js"
+    subreddit: "Bard"
+    hn_queries:
+      - "Gemini AI"
+      - "Google Gemini"
+    gdelt_queries:
+      - "Google Gemini"
+      - "Gemini AI"
+    arena_name: "Gemini"
+
+  claude:
+    name: "Claude"
+    company: "Anthropic"
+    color: "#D4A574"
+    search_queries:
+      - "Claude AI"
+      - "Claude 4"
+      - "Anthropic Claude"
+      - "Claude Sonnet"
+    github_repos:
+      - "anthropics/anthropic-sdk-python"
+      - "anthropics/anthropic-sdk-typescript"
+    subreddit: "ClaudeAI"
+    hn_queries:
+      - "Claude AI"
+      - "Anthropic"
+    gdelt_queries:
+      - "Anthropic Claude"
+      - "Claude AI"
+    arena_name: "Claude"
+
+  perplexity:
+    name: "Perplexity"
+    company: "Perplexity AI"
+    color: "#20B2AA"
+    search_queries:
+      - "Perplexity AI"
+      - "Perplexity"
+    github_repos: []
+    subreddit: "perplexity_ai"
+    hn_queries:
+      - "Perplexity AI"
+      - "Perplexity"
+    gdelt_queries:
+      - "Perplexity AI"
+    arena_name: "Perplexity"
+
+  deepseek:
+    name: "DeepSeek"
+    company: "DeepSeek"
+    color: "#0066FF"
+    search_queries:
+      - "DeepSeek"
+      - "DeepSeek R1"
+      - "DeepSeek V3"
+    github_repos:
+      - "deepseek-ai/DeepSeek-V3"
+      - "deepseek-ai/DeepSeek-R1"
+    subreddit: "DeepSeek"
+    hn_queries:
+      - "DeepSeek"
+    gdelt_queries:
+      - "DeepSeek AI"
+      - "DeepSeek"
+    arena_name: "DeepSeek"
+
+  grok:
+    name: "Grok"
+    company: "xAI"
+    color: "#1DA1F2"
+    search_queries:
+      - "Grok AI"
+      - "xAI Grok"
+      - "Grok 3"
+    github_repos:
+      - "xai-org/grok-1"
+    subreddit: "grok"
+    hn_queries:
+      - "Grok AI"
+      - "xAI Grok"
+    gdelt_queries:
+      - "Grok AI"
+      - "xAI Grok"
+    arena_name: "Grok"
+
+  copilot:
+    name: "Copilot"
+    company: "Microsoft"
+    color: "#9B59B6"
+    search_queries:
+      - "GitHub Copilot"
+      - "Microsoft Copilot"
+      - "Copilot AI"
+    github_repos: []
+    subreddit: "MicrosoftCopilot"
+    hn_queries:
+      - "GitHub Copilot"
+      - "Microsoft Copilot"
+    gdelt_queries:
+      - "Microsoft Copilot"
+      - "GitHub Copilot"
+    arena_name: "Copilot"

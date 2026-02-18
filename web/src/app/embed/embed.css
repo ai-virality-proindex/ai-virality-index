@@ -1,0 +1,123 @@
+/* Embed widget — self-contained styles, no Tailwind dependency */
+.embed-body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+.avi-widget {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 16px 20px;
+  color: #e2e8f0;
+  max-width: 320px;
+  min-width: 240px;
+}
+
+.avi-widget-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.avi-widget-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.avi-widget-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f8fafc;
+  flex: 1;
+}
+
+.avi-widget-company {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* Score display */
+.avi-widget-score-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.avi-widget-score {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.avi-widget-label {
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.avi-widget-delta {
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.avi-widget-delta.positive { color: #10b981; }
+.avi-widget-delta.negative { color: #ef4444; }
+.avi-widget-delta.neutral { color: #64748b; }
+
+/* Sparkline */
+.avi-widget-sparkline {
+  margin-bottom: 10px;
+}
+
+.avi-widget-sparkline svg {
+  display: block;
+  width: 100%;
+  height: 40px;
+}
+
+/* Footer */
+.avi-widget-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #334155;
+  padding-top: 8px;
+}
+
+.avi-widget-powered {
+  font-size: 10px;
+  color: #64748b;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.avi-widget-powered:hover {
+  color: #94a3b8;
+}
+
+.avi-widget-date {
+  font-size: 10px;
+  color: #475569;
+}
+
+/* Not found state */
+.avi-widget-empty {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 24px;
+  color: #94a3b8;
+  text-align: center;
+  font-size: 13px;
+  max-width: 320px;
+}

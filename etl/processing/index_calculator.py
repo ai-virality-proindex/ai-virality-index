@@ -1,0 +1,450 @@
+"""
+Index Calculator for AI Virality Index.
+
+Computes the composite VI_trade and VI_content scores (0-100) for each model,
+along with momentum (delta7, acceleration) and trading signals.
+
+Spec reference: TECHNICAL_SPEC.md sections 2.6 and 2.7
+
+Component mapping:
+    T: source='trends',      metric='interest'
+    S: source in ('youtube','hackernews'), averaged
+    G: source='github',      'stars_delta_1d' + 'forks_delta_1d'
+    N: source='gdelt',       'article_count'
+    Q: source='arena',       'elo_rating'
+    M: source='polymarket',  'odds'
+
+Weights:
+    Trading: 0.20*T + 0.20*S + 0.15*G + 0.10*N + 0.20*Q + 0.15*M
+    Content: 0.28*T + 0.32*S + 0.08*G + 0.20*N + 0.05*Q + 0.07*M
+"""
+
+import logging
+from datetime import date, timedelta
+from typing import Any
+
+from etl.processing.normalizer import quantile_normalize
+from etl.processing.smoother import ewma
+from etl.storage.supabase_client import (
+    get_client,
+    get_all_models,
+    get_raw_metrics,
+)
+
+logger = logging.getLogger(__name__)
+
+# ----- Weight Configurations -----
+
+WEIGHTS_TRADE = {
+    "T": 0.20,
+    "S": 0.20,
+    "G": 0.15,
+    "N": 0.10,
+    "Q": 0.20,
+    "M": 0.15,
+}
+
+WEIGHTS_CONTENT = {
+    "T": 0.28,
+    "S": 0.32,
+    "G": 0.08,
+    "N": 0.20,
+    "Q": 0.05,
+    "M": 0.07,
+}
+
+# EWMA alpha per mode
+ALPHA_TRADE = 0.35
+ALPHA_CONTENT = 0.25
+
+# ----- Component Data Fetchers -----
+
+# Each component: (source, metric_name) tuples.
+# S (Social) is special: average of youtube + hackernews.
+COMPONENT_SOURCES = {
+    "T": [("trends", "interest")],
+    "S": [("youtube", "total_views_24h"), ("hackernews", "stories_24h")],
+    "G": [("github", "stars_delta_1d"), ("github", "forks_delta_1d")],
+    "N": [("gdelt", "article_count")],
+    "Q": [("arena", "elo_rating")],
+    "M": [("polymarket", "odds")],
+}
+
+
+def _fetch_component_history(
+    model_id: str,
+    component: str,
+    days: int = 90,
+) -> list[float]:
+    """
+    Fetch raw metric history for a component, merging multiple sources if needed.
+
+    For multi-source components (S, G), values from the same date are summed (G)
+    or averaged (S).
+
+    Returns:
+        List of float values ordered by date ascending.
+    """
+    sources = COMPONENT_SOURCES[component]
+
+    if len(sources) == 1:
+        source, metric_name = sources[0]
+        rows = get_raw_metrics(model_id, source, metric_name, days=days)
+        return [float(r["metric_value"]) for r in rows]
+
+    # Multi-source: fetch each, align by date, then combine
+    from collections import defaultdict
+
+    date_values: dict[str, list[float]] = defaultdict(list)
+
+    for source, metric_name in sources:
+        rows = get_raw_metrics(model_id, source, metric_name, days=days)
+        for r in rows:
+            date_values[r["date"]].append(float(r["metric_value"]))
+
+    if not date_values:
+        return []
+
+    # Sort by date and combine
+    sorted_dates = sorted(date_values.keys())
+
+    if component == "G":
+        # GitHub: sum stars_delta + forks_delta
+        return [sum(date_values[d]) for d in sorted_dates]
+    else:
+        # Social (S): average across sources
+        return [sum(date_values[d]) / len(date_values[d]) for d in sorted_dates]
+
+
+def calculate_index(
+    model_id: str,
+    calc_date: date,
+    mode: str = "trade",
+) -> dict[str, Any]:
+    """
+    Calculate the composite index for a model on a given date.
+
+    Steps:
+        1. Query raw_metrics for last 90 days per component
+        2. Normalize each component (quantile scaling -> 0-100)
+        3. Smooth with EWMA
+        4. Apply weighted sum
+
+    Args:
+        model_id: UUID of the model.
+        calc_date: Date for which to calculate the index.
+        mode: 'trade' or 'content'.
+
+    Returns:
+        Dict with:
+            vi_score: float (0-100),
+            components: {T: float, S: float, G: float, N: float, Q: float, M: float},
+            smoothed_components: {T: float, ...},
+    """
+    weights = WEIGHTS_TRADE if mode == "trade" else WEIGHTS_CONTENT
+    alpha = ALPHA_TRADE if mode == "trade" else ALPHA_CONTENT
+
+    components_raw: dict[str, float] = {}
+    components_normalized: dict[str, float] = {}
+    components_smoothed: dict[str, float] = {}
+
+    for comp_code in ["T", "S", "G", "N", "Q", "M"]:
+        history = _fetch_component_history(model_id, comp_code, days=90)
+
+        if not history:
+            # No data for this component: default to 50 (neutral)
+            components_raw[comp_code] = 0.0
+            components_normalized[comp_code] = 50.0
+            components_smoothed[comp_code] = 50.0
+            continue
+
+        # Raw value is the latest
+        components_raw[comp_code] = history[-1]
+
+        # Normalize
+        normalized = quantile_normalize(history)
+        components_normalized[comp_code] = normalized
+
+        # Smooth: apply EWMA to the full normalized history, take the last
+        # We need to normalize the full history first for EWMA to work properly
+        if len(history) > 1:
+            all_normalized = []
+            for i in range(len(history)):
+                vals_so_far = history[:i + 1]
+                all_normalized.append(quantile_normalize(vals_so_far))
+            smoothed_series = ewma(all_normalized, alpha=alpha)
+            components_smoothed[comp_code] = smoothed_series[-1]
+        else:
+            components_smoothed[comp_code] = normalized
+
+    # Weighted sum
+    vi_score = sum(
+        weights[c] * components_smoothed[c]
+        for c in ["T", "S", "G", "N", "Q", "M"]
+    )
+    vi_score = round(max(0.0, min(100.0, vi_score)), 2)
+
+    return {
+        "vi_score": vi_score,
+        "components_raw": components_raw,
+        "components_normalized": components_normalized,
+        "components_smoothed": components_smoothed,
+    }
+
+
+def calculate_momentum(
+    scores: list[float],
+) -> dict[str, float]:
+    """
+    Calculate 7-day momentum and acceleration from a series of daily scores.
+
+    Delta7(x) = x(t) - x(t-7)
+    Accel(x)  = Delta7(x) - Delta7(x, t-7) = Delta7(t) - Delta7(t-7)
+
+    Args:
+        scores: List of daily scores, ordered by date ascending.
+                Needs at least 8 values for delta7, 15 for acceleration.
+
+    Returns:
+        Dict with 'delta7' and 'acceleration'. Both 0.0 if not enough data.
+    """
+    if len(scores) < 8:
+        return {"delta7": 0.0, "acceleration": 0.0}
+
+    delta7 = scores[-1] - scores[-8]  # t vs t-7
+
+    if len(scores) < 15:
+        return {"delta7": round(delta7, 2), "acceleration": 0.0}
+
+    delta7_prev = scores[-8] - scores[-15]  # (t-7) vs (t-14)
+    acceleration = delta7 - delta7_prev
+
+    return {
+        "delta7": round(delta7, 2),
+        "acceleration": round(acceleration, 2),
+    }
+
+
+def calculate_signal_trade(
+    vi_trade: float,
+    delta7: float,
+    acceleration: float,
+) -> float:
+    """
+    Calculate the Trading Signal composite score.
+
+    Signal_trade = 0.60 * VI_trade + 0.25 * norm(delta7) + 0.15 * norm(accel)
+
+    norm() here maps the raw delta/accel to 0-100:
+      - delta7 range: roughly -50 to +50 -> clamp and scale
+      - acceleration range: roughly -30 to +30 -> clamp and scale
+
+    Args:
+        vi_trade: VI trading score (0-100).
+        delta7: 7-day momentum.
+        acceleration: Momentum acceleration.
+
+    Returns:
+        Signal score in [0, 100].
+    """
+    # Normalize delta7: [-50, +50] -> [0, 100]
+    norm_delta7 = _normalize_momentum(delta7, max_abs=50.0)
+
+    # Normalize acceleration: [-30, +30] -> [0, 100]
+    norm_accel = _normalize_momentum(acceleration, max_abs=30.0)
+
+    signal = 0.60 * vi_trade + 0.25 * norm_delta7 + 0.15 * norm_accel
+    return round(max(0.0, min(100.0, signal)), 2)
+
+
+def calculate_heat_content(
+    vi_content: float,
+    delta7: float,
+) -> float:
+    """
+    Calculate the Content Heat score.
+
+    Heat_content = 0.50 * VI_content + 0.50 * norm(Delta7(VI_content))
+
+    Args:
+        vi_content: VI content score (0-100).
+        delta7: 7-day momentum of content score.
+
+    Returns:
+        Heat score in [0, 100].
+    """
+    norm_delta7 = _normalize_momentum(delta7, max_abs=50.0)
+    heat = 0.50 * vi_content + 0.50 * norm_delta7
+    return round(max(0.0, min(100.0, heat)), 2)
+
+
+def _normalize_momentum(value: float, max_abs: float = 50.0) -> float:
+    """
+    Normalize a momentum value (can be negative) to 0-100.
+
+    Maps [-max_abs, +max_abs] to [0, 100], with clamping.
+    0 maps to 50 (neutral).
+    """
+    clamped = max(-max_abs, min(value, max_abs))
+    return 50.0 + (clamped / max_abs) * 50.0
+
+
+def _get_daily_scores_history(
+    model_id: str,
+    column: str,
+    days: int = 30,
+) -> list[float]:
+    """
+    Fetch historical daily_scores for momentum calculation.
+
+    Args:
+        model_id: UUID of the model.
+        column: Column to fetch ('vi_trade' or 'vi_content').
+        days: Number of days to look back.
+
+    Returns:
+        List of scores, ordered by date ascending.
+    """
+    client = get_client()
+    start_date = (date.today() - timedelta(days=days)).isoformat()
+
+    result = (
+        client.table("daily_scores")
+        .select(f"date, {column}")
+        .eq("model_id", model_id)
+        .gte("date", start_date)
+        .order("date", desc=False)
+        .execute()
+    )
+    return [float(r[column]) for r in result.data if r[column] is not None]
+
+
+def run_daily_calculation(calc_date: date) -> dict[str, Any]:
+    """
+    Run the full daily index calculation for all active models.
+
+    For each model:
+        1. Calculate VI_trade and VI_content
+        2. Write component_scores to Supabase
+        3. Calculate momentum (delta7, acceleration) from daily_scores history
+        4. Calculate signal_trade and heat_content
+        5. Write daily_scores to Supabase
+
+    Args:
+        calc_date: The date to calculate for.
+
+    Returns:
+        Summary dict.
+    """
+    models = get_all_models()
+    client = get_client()
+
+    logger.info(f"Running daily calculation for {calc_date} — {len(models)} models")
+
+    results = []
+
+    for model in models:
+        model_id = model["id"]
+        slug = model["slug"]
+
+        try:
+            # Calculate both indices
+            trade_result = calculate_index(model_id, calc_date, mode="trade")
+            content_result = calculate_index(model_id, calc_date, mode="content")
+
+            vi_trade = trade_result["vi_score"]
+            vi_content = content_result["vi_score"]
+
+            # Upsert component scores
+            for comp_code in ["T", "S", "G", "N", "Q", "M"]:
+                comp_row = {
+                    "model_id": model_id,
+                    "date": calc_date.isoformat(),
+                    "component": comp_code,
+                    "raw_value": trade_result["components_raw"].get(comp_code, 0),
+                    "normalized_value": trade_result["components_normalized"].get(comp_code, 50),
+                    "smoothed_value": trade_result["components_smoothed"].get(comp_code, 50),
+                }
+                client.table("component_scores").upsert(
+                    comp_row,
+                    on_conflict="model_id,date,component",
+                ).execute()
+
+            # Fetch historical scores for momentum
+            trade_history = _get_daily_scores_history(model_id, "vi_trade", days=30)
+            content_history = _get_daily_scores_history(model_id, "vi_content", days=30)
+
+            # Add today's scores to history for momentum calc
+            trade_history.append(vi_trade)
+            content_history.append(vi_content)
+
+            # Momentum
+            trade_momentum = calculate_momentum(trade_history)
+            content_momentum = calculate_momentum(content_history)
+
+            # Trading signal and content heat
+            signal_trade = calculate_signal_trade(
+                vi_trade,
+                trade_momentum["delta7"],
+                trade_momentum["acceleration"],
+            )
+            heat_content = calculate_heat_content(
+                vi_content,
+                content_momentum["delta7"],
+            )
+
+            # Build component breakdown JSON
+            breakdown = {}
+            for comp_code in ["T", "S", "G", "N", "Q", "M"]:
+                breakdown[comp_code] = trade_result["components_smoothed"].get(comp_code, 50)
+
+            # Upsert daily scores
+            daily_row = {
+                "model_id": model_id,
+                "date": calc_date.isoformat(),
+                "vi_trade": vi_trade,
+                "vi_content": vi_content,
+                "signal_trade": signal_trade,
+                "heat_content": heat_content,
+                "delta7_trade": trade_momentum["delta7"],
+                "delta7_content": content_momentum["delta7"],
+                "accel_trade": trade_momentum["acceleration"],
+                "accel_content": content_momentum["acceleration"],
+                "component_breakdown": breakdown,
+            }
+            client.table("daily_scores").upsert(
+                daily_row,
+                on_conflict="model_id,date",
+            ).execute()
+
+            results.append({
+                "model": slug,
+                "vi_trade": vi_trade,
+                "vi_content": vi_content,
+                "signal_trade": signal_trade,
+                "heat_content": heat_content,
+                "delta7_trade": trade_momentum["delta7"],
+                "status": "OK",
+            })
+
+            logger.info(
+                f"  {slug}: VI_trade={vi_trade:.1f} VI_content={vi_content:.1f} "
+                f"Signal={signal_trade:.1f} Heat={heat_content:.1f} "
+                f"d7={trade_momentum['delta7']:+.1f}"
+            )
+
+        except Exception as e:
+            logger.error(f"  {slug}: FAILED — {e}")
+            results.append({"model": slug, "status": f"ERROR: {e}"})
+
+    ok_count = sum(1 for r in results if r["status"] == "OK")
+    logger.info(
+        f"Index calculation complete: {ok_count}/{len(models)} models OK"
+    )
+
+    return {
+        "date": calc_date.isoformat(),
+        "models_calculated": ok_count,
+        "models_total": len(models),
+        "details": results,
+    }

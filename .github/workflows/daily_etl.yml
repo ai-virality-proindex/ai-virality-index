@@ -1,0 +1,42 @@
+name: Daily ETL Pipeline
+
+on:
+  schedule:
+    # Run daily at 12:00 UTC
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+    # Allow manual trigger from GitHub UI
+
+jobs:
+  etl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'etl/requirements.txt'
+
+      - name: Install dependencies
+        run: pip install -r etl/requirements.txt
+
+      - name: Run ETL pipeline
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+          REDDIT_USER_AGENT: 'AVI/1.0'
+        run: python -m etl.main
+
+      - name: Report status
+        if: always()
+        run: echo "ETL pipeline finished with exit code ${{ job.status }}"
