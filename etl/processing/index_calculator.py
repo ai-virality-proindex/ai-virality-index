@@ -29,7 +29,7 @@ from etl.config import (
     EWMA_ALPHA_TRADE as ALPHA_TRADE,
     EWMA_ALPHA_CONTENT as ALPHA_CONTENT,
 )
-from etl.processing.normalizer import quantile_normalize
+from etl.processing.normalizer import quantile_normalize, cross_model_normalize
 from etl.processing.smoother import ewma
 from etl.storage.supabase_client import (
     get_client,
@@ -304,16 +304,26 @@ def _get_daily_scores_history(
     return [float(r[column]) for r in result.data if r[column] is not None]
 
 
+def _needs_cross_model(model_id: str, component: str, days: int = 90) -> bool:
+    """Check if a component has less than 7 days of history (needs cross-model norm)."""
+    history = _fetch_component_history(model_id, component, days=days)
+    return len(history) < 7
+
+
 def run_daily_calculation(calc_date: date) -> dict[str, Any]:
     """
     Run the full daily index calculation for all active models.
 
+    Two-phase normalization:
+        Phase 1: Per-model quantile normalization (works well with 7+ days data)
+        Phase 2: Cross-model ranking for components with < 7 days history.
+                 Replaces per-model normalized values with cross-model scores.
+
     For each model:
-        1. Calculate VI_trade and VI_content
-        2. Write component_scores to Supabase
-        3. Calculate momentum (delta7, acceleration) from daily_scores history
-        4. Calculate signal_trade and heat_content
-        5. Write daily_scores to Supabase
+        1. Calculate VI_trade and VI_content (phase 1)
+        2. Apply cross-model normalization (phase 2) for sparse components
+        3. Recalculate weighted VI scores with corrected component values
+        4. Write component_scores and daily_scores to Supabase
 
     Args:
         calc_date: The date to calculate for.
@@ -326,19 +336,90 @@ def run_daily_calculation(calc_date: date) -> dict[str, Any]:
 
     logger.info(f"Running daily calculation for {calc_date} — {len(models)} models")
 
+    # ---- Phase 1: Per-model calculation ----
+    phase1_results: dict[str, dict] = {}  # model_id -> {trade_result, content_result}
+
+    for model in models:
+        model_id = model["id"]
+        slug = model["slug"]
+        try:
+            trade_result = calculate_index(model_id, calc_date, mode="trade")
+            content_result = calculate_index(model_id, calc_date, mode="content")
+            phase1_results[model_id] = {
+                "slug": slug,
+                "trade": trade_result,
+                "content": content_result,
+            }
+        except Exception as e:
+            logger.error(f"  {slug}: Phase 1 FAILED — {e}")
+            phase1_results[model_id] = {"slug": slug, "error": str(e)}
+
+    # ---- Phase 2: Cross-model normalization for sparse components ----
+    # Check which components need cross-model normalization
+    # (use first model to check history length; all models have same date range)
+    sparse_components: set[str] = set()
+    for comp_code in ["T", "S", "G", "N", "D", "M"]:
+        for model in models:
+            model_id = model["id"]
+            if model_id in phase1_results and "error" not in phase1_results[model_id]:
+                if _needs_cross_model(model_id, comp_code):
+                    sparse_components.add(comp_code)
+                break  # Only need to check one model per component
+
+    if sparse_components:
+        logger.info(f"  Cross-model normalization for sparse components: {sparse_components}")
+
+    # Build cross-model scores for sparse components
+    cross_scores: dict[str, dict[str, float]] = {}  # comp -> {model_id -> score}
+    for comp_code in sparse_components:
+        raw_values: dict[str, float] = {}
+        for model_id, p1 in phase1_results.items():
+            if "error" in p1:
+                continue
+            raw_values[model_id] = p1["trade"]["components_raw"].get(comp_code, 0.0)
+        cross_scores[comp_code] = cross_model_normalize(raw_values)
+
+    # ---- Phase 3: Merge and write results ----
+    weights_trade = WEIGHTS_TRADE
+    weights_content = WEIGHTS_CONTENT
+    alpha_trade = ALPHA_TRADE
+    alpha_content = ALPHA_CONTENT
     results = []
 
     for model in models:
         model_id = model["id"]
         slug = model["slug"]
+        p1 = phase1_results.get(model_id, {})
+
+        if "error" in p1:
+            results.append({"model": slug, "status": f"ERROR: {p1['error']}"})
+            continue
 
         try:
-            # Calculate both indices
-            trade_result = calculate_index(model_id, calc_date, mode="trade")
-            content_result = calculate_index(model_id, calc_date, mode="content")
+            trade_result = p1["trade"]
+            content_result = p1["content"]
 
-            vi_trade = trade_result["vi_score"]
-            vi_content = content_result["vi_score"]
+            # Override normalized values for sparse components
+            for comp_code in sparse_components:
+                if comp_code in cross_scores and model_id in cross_scores[comp_code]:
+                    cross_val = cross_scores[comp_code][model_id]
+                    trade_result["components_normalized"][comp_code] = cross_val
+                    trade_result["components_smoothed"][comp_code] = cross_val
+                    content_result["components_normalized"][comp_code] = cross_val
+                    content_result["components_smoothed"][comp_code] = cross_val
+
+            # Recalculate VI scores with corrected component values
+            vi_trade = sum(
+                weights_trade[c] * trade_result["components_smoothed"][c]
+                for c in ["T", "S", "G", "N", "D", "M"]
+            )
+            vi_trade = round(max(0.0, min(100.0, vi_trade)), 2)
+
+            vi_content = sum(
+                weights_content[c] * content_result["components_smoothed"][c]
+                for c in ["T", "S", "G", "N", "D", "M"]
+            )
+            vi_content = round(max(0.0, min(100.0, vi_content)), 2)
 
             # Upsert component scores
             for comp_code in ["T", "S", "G", "N", "D", "M"]:

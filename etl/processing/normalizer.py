@@ -137,3 +137,67 @@ def normalize_batch(
         else:
             results[slug] = quantile_normalize(values, window=window)
     return results
+
+
+def cross_model_normalize(
+    values_by_model: dict[str, float],
+) -> dict[str, float]:
+    """
+    Cross-model normalization: rank models relative to each other.
+
+    Used when temporal history is too short for per-model quantile
+    normalization (< 7 days). Instead of normalizing each model by its
+    own history, we compare all models' current values against each other.
+
+    Algorithm:
+        1. Collect all non-zero values across models
+        2. If < 2 distinct non-zero values → return per-model defaults
+        3. Scale to 0-100 using min-max across models
+        4. Zero-value models get 0 (no signal)
+
+    Args:
+        values_by_model: Dict mapping model_id -> current raw value.
+
+    Returns:
+        Dict mapping model_id -> normalized score (0-100).
+    """
+    if not values_by_model:
+        return {}
+
+    # Separate zeros from non-zeros
+    nonzero_vals = {k: v for k, v in values_by_model.items() if v > 0}
+    zero_models = {k for k, v in values_by_model.items() if v <= 0}
+
+    results: dict[str, float] = {}
+
+    # All zeros → all get 0
+    if not nonzero_vals:
+        return {k: 0.0 for k in values_by_model}
+
+    # Only one model with data → it gets 50 (can't rank against itself)
+    if len(nonzero_vals) == 1:
+        for k in values_by_model:
+            results[k] = 50.0 if k in nonzero_vals else 0.0
+        return results
+
+    # Cross-model min-max: spread across 10-100 range (not 0-100)
+    # to visually distinguish from "no data" (0)
+    vals = list(nonzero_vals.values())
+    vmin = min(vals)
+    vmax = max(vals)
+
+    if vmax == vmin:
+        # All models have the same non-zero value → all get 50
+        for k in values_by_model:
+            results[k] = 50.0 if k in nonzero_vals else 0.0
+        return results
+
+    for k, v in values_by_model.items():
+        if k in zero_models:
+            results[k] = 0.0
+        else:
+            # Scale to 10-100 range (reserve 0-10 for "no data" zone)
+            score = 10.0 + 90.0 * (v - vmin) / (vmax - vmin)
+            results[k] = round(max(0.0, min(100.0, score)), 2)
+
+    return results

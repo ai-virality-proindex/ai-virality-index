@@ -239,16 +239,16 @@ class TestCalculateIndex(unittest.TestCase):
     """Test calculate_index with mocked Supabase."""
 
     @patch("etl.processing.index_calculator.get_raw_metrics")
-    def test_no_data_returns_neutral(self, mock_raw):
-        """When all components have no data, VI should be 50."""
+    def test_no_data_returns_zero(self, mock_raw):
+        """When all components have no data, VI should be 0 (no signal)."""
         mock_raw.return_value = []
 
         from etl.processing.index_calculator import calculate_index
         result = calculate_index("fake-uuid", date(2026, 2, 18), mode="trade")
 
-        self.assertAlmostEqual(result["vi_score"], 50.0)
+        self.assertAlmostEqual(result["vi_score"], 0.0)
         for comp in ["T", "S", "G", "N", "D", "M"]:
-            self.assertAlmostEqual(result["components_smoothed"][comp], 50.0)
+            self.assertAlmostEqual(result["components_smoothed"][comp], 0.0)
 
     @patch("etl.processing.index_calculator.get_raw_metrics")
     def test_result_has_required_keys(self, mock_raw):
