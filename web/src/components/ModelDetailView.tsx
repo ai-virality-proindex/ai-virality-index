@@ -6,6 +6,8 @@ import IndexChart from './IndexChart'
 import BreakdownRadar from './BreakdownRadar'
 import ModeToggle from './ModeToggle'
 import UpdateCountdown from './UpdateCountdown'
+import UpsellBanner from './UpsellBanner'
+import { useUserPlan } from '../hooks/useUserPlan'
 import { getIndexColor, formatDelta } from '@/lib/utils'
 
 interface HistoryPoint {
@@ -66,6 +68,8 @@ export default function ModelDetailView({
   lastFetchedAt,
 }: ModelDetailViewProps) {
   const [mode, setMode] = useState<'trade' | 'content'>('trade')
+  const { plan, loading: planLoading } = useUserPlan()
+  const isFreeOrAnon = !planLoading && (plan === 'anon' || plan === 'free')
 
   const vi = latestScore
     ? mode === 'trade' ? latestScore.vi_trade : latestScore.vi_content
@@ -183,13 +187,15 @@ export default function ModelDetailView({
             mode={mode}
           />
 
+          {isFreeOrAnon && <UpsellBanner variant="model-breakdown" />}
+
           {/* Breakdown + Signals row */}
           <div className="grid sm:grid-cols-2 gap-6">
             {/* Radar */}
             <BreakdownRadar
               data={breakdown}
               modelColor={model.color || '#10B981'}
-              blurred={breakdown.length === 0}
+              blurred={isFreeOrAnon || breakdown.length === 0}
             />
 
             {/* Signals */}

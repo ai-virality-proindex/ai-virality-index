@@ -1,12 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import IndexGauge from './IndexGauge'
 import ModelCard, { ModelScore } from './ModelCard'
 import HeatMap from './HeatMap'
 import TopMovers from './TopMovers'
 import ModeToggle from './ModeToggle'
 import UpdateCountdown from './UpdateCountdown'
+import UpsellBanner from './UpsellBanner'
+import WelcomeModal from './WelcomeModal'
+import { useUserPlan } from '../hooks/useUserPlan'
 
 interface DashboardViewProps {
   scores: ModelScore[]
@@ -28,6 +31,24 @@ export default function DashboardView({
   lastFetchedAt,
 }: DashboardViewProps) {
   const [mode, setMode] = useState<'trade' | 'content'>('trade')
+  const { plan, loading: planLoading } = useUserPlan()
+  const showUpsell = !planLoading && (plan === 'anon' || plan === 'free')
+
+  // Welcome modal after checkout
+  const [showWelcome, setShowWelcome] = useState(false)
+  const [welcomePlan, setWelcomePlan] = useState('')
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('welcome') === 'true') {
+      const completed = localStorage.getItem('onboarding_completed')
+      if (!completed) {
+        setWelcomePlan(params.get('plan') || 'pro_trader_monthly')
+        setShowWelcome(true)
+      }
+      window.history.replaceState({}, '', '/dashboard')
+    }
+  }, [])
 
   // Calculate market average
   const getVi = (s: ModelScore) => mode === 'trade' ? s.vi_trade : s.vi_content
@@ -44,6 +65,10 @@ export default function DashboardView({
 
   return (
     <div className="space-y-8">
+      {showWelcome && (
+        <WelcomeModal plan={welcomePlan} onClose={() => setShowWelcome(false)} />
+      )}
+
       {/* Header row: title + toggle */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -72,6 +97,8 @@ export default function DashboardView({
         </div>
       ) : (
         <>
+          {showUpsell && <UpsellBanner variant="dashboard-delay" />}
+
           {/* Gauge + Summary row */}
           <div className="grid sm:grid-cols-3 gap-6">
             {/* Center gauge */}

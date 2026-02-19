@@ -9,13 +9,12 @@ export function getStripe(): Stripe {
   return _stripe
 }
 
-// Product/Price IDs — create these in Stripe Dashboard (test mode) first,
-// then paste IDs here. For now, we create them dynamically on first use.
 export const PLANS = {
-  pro_trader: {
+  pro_trader_monthly: {
     name: 'Pro Trader',
     price: 2900, // cents
     interval: 'month' as const,
+    trialDays: 7,
     features: [
       'Real-time data (no delay)',
       'Full history access',
@@ -25,10 +24,39 @@ export const PLANS = {
     ],
     dbPlan: 'pro' as const,
   },
-  pro_builder: {
+  pro_trader_annual: {
+    name: 'Pro Trader (Annual)',
+    price: 24900, // $249/yr — save 28% vs $29*12=$348
+    interval: 'year' as const,
+    trialDays: 7,
+    features: [
+      'Real-time data (no delay)',
+      'Full history access',
+      'Component breakdown (T/S/G/N/D/M)',
+      'Trading signals & divergence alerts',
+      'API: 600 req/min',
+    ],
+    dbPlan: 'pro' as const,
+  },
+  pro_builder_monthly: {
     name: 'Pro Builder',
     price: 9900, // cents
     interval: 'month' as const,
+    trialDays: 0,
+    features: [
+      'Everything in Pro Trader',
+      'API: 3,000 req/min',
+      'Webhook alerts',
+      'CSV data export',
+      'Priority support',
+    ],
+    dbPlan: 'enterprise' as const,
+  },
+  pro_builder_annual: {
+    name: 'Pro Builder (Annual)',
+    price: 89900, // $899/yr — save 25% vs $99*12=$1188
+    interval: 'year' as const,
+    trialDays: 0,
     features: [
       'Everything in Pro Trader',
       'API: 3,000 req/min',
@@ -41,6 +69,14 @@ export const PLANS = {
 } as const
 
 export type PlanKey = keyof typeof PLANS
+
+/** Resolve legacy plan keys (pro_trader, pro_builder) to new monthly keys */
+export function resolvePlanKey(key: string): PlanKey | null {
+  if (key in PLANS) return key as PlanKey
+  if (key === 'pro_trader') return 'pro_trader_monthly'
+  if (key === 'pro_builder') return 'pro_builder_monthly'
+  return null
+}
 
 // Get or create a Stripe price for a plan
 export async function getOrCreatePrice(planKey: PlanKey): Promise<string> {

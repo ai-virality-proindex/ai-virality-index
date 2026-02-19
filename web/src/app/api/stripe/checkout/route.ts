@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAuthServerClient } from '../../../../lib/supabase-server'
 import { createServerClient } from '../../../../lib/supabase'
-import { getStripe, getOrCreatePrice, PLANS, PlanKey } from '../../../../lib/stripe'
+import { getStripe, getOrCreatePrice, PLANS, resolvePlanKey } from '../../../../lib/stripe'
 
 export async function POST(request: NextRequest) {
   const supabase = await createAuthServerClient()
@@ -24,14 +24,15 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const planKey = body.plan as PlanKey
-  if (!planKey || !PLANS[planKey]) {
+  const planKey = resolvePlanKey(body.plan || '')
+  if (!planKey) {
     return NextResponse.json(
-      { error: { code: 'VALIDATION_ERROR', message: 'Invalid plan. Use: pro_trader or pro_builder' } },
+      { error: { code: 'VALIDATION_ERROR', message: 'Invalid plan' } },
       { status: 400 }
     )
   }
 
+  const plan = PLANS[planKey]
   const stripe = getStripe()
   const admin = createServerClient()
 
@@ -65,7 +66,10 @@ export async function POST(request: NextRequest) {
     customer: customerId,
     mode: 'subscription',
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${request.nextUrl.origin}/dashboard?checkout=success`,
+    ...(plan.trialDays > 0
+      ? { subscription_data: { trial_period_days: plan.trialDays } }
+      : {}),
+    success_url: `${request.nextUrl.origin}/dashboard?welcome=true&plan=${planKey}`,
     cancel_url: `${request.nextUrl.origin}/pricing?checkout=cancelled`,
     metadata: {
       supabase_user_id: user.id,

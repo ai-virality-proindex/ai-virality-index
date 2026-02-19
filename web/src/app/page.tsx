@@ -111,7 +111,7 @@ export default async function Home() {
             AI Virality Index
           </h1>
           <p className="text-xl sm:text-2xl text-slate-400 mb-3">
-            The Fear &amp; Greed Index for AI Models
+            Stop guessing which AI is hot. Start knowing.
           </p>
           <p className="text-slate-500 max-w-2xl mx-auto mb-10 text-base leading-relaxed">
             Real-time composite index (0-100) tracking the virality of ChatGPT, Gemini, Claude,
@@ -124,13 +124,13 @@ export default async function Home() {
               href="/dashboard"
               className="rounded-lg bg-avi-green px-8 py-3.5 font-semibold text-white hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-900/30"
             >
-              View Dashboard
+              See what&apos;s trending now
             </Link>
             <Link
-              href="/docs"
+              href="/pricing"
               className="rounded-lg border border-avi-border px-8 py-3.5 font-semibold text-slate-300 hover:border-slate-400 hover:text-white transition-colors"
             >
-              API Documentation
+              Get signals before the market moves
             </Link>
           </div>
 
@@ -381,9 +381,9 @@ export default async function Home() {
       {/* ====== PRICING ====== */}
       <section className="py-20 border-t border-avi-border/50" id="pricing">
         <div className="mx-auto max-w-5xl px-6">
-          <h2 className="text-3xl font-bold text-white text-center mb-4">Pricing</h2>
+          <h2 className="text-3xl font-bold text-white text-center mb-4">For teams that can&apos;t afford to guess</h2>
           <p className="text-slate-500 text-center mb-12">
-            Start free. Upgrade when you need real-time data and signals.
+            Your competitors already know. Real-time AI virality intelligence, starting free.
           </p>
           <div className="grid sm:grid-cols-3 gap-6">
             {/* Free */}
@@ -398,7 +398,7 @@ export default async function Home() {
                 <li className="flex gap-2"><span className="text-slate-600">&#10003;</span> Basic API (60 req/min)</li>
               </ul>
               <Link href="/dashboard" className="block w-full rounded-lg border border-avi-border py-2.5 text-center text-sm font-medium text-slate-300 hover:border-slate-400 transition-colors">
-                Get Started
+                Start for free
               </Link>
             </div>
 
@@ -418,7 +418,7 @@ export default async function Home() {
                 <li className="flex gap-2"><span className="text-avi-green">&#10003;</span> API 600 req/min</li>
               </ul>
               <Link href="/pricing" className="block w-full rounded-lg bg-avi-green py-2.5 text-center text-sm font-semibold text-white hover:bg-emerald-600 transition-colors">
-                Subscribe
+                Start your free trial
               </Link>
             </div>
 
@@ -435,12 +435,12 @@ export default async function Home() {
                 <li className="flex gap-2"><span className="text-avi-blue">&#10003;</span> Priority support</li>
               </ul>
               <Link href="/pricing" className="block w-full rounded-lg border border-avi-border py-2.5 text-center text-sm font-medium text-slate-300 hover:border-slate-400 transition-colors">
-                Subscribe
+                Start building smarter
               </Link>
             </div>
           </div>
           <p className="text-center text-xs text-slate-600 mt-6">
-            Enterprise plans from $499/mo &mdash; custom indices, SLA, white-label. <Link href="/pricing" className="text-slate-500 hover:text-slate-400 underline">Contact us</Link>
+            Enterprise plans from $499/mo &mdash; custom indices, SLA, white-label. <Link href="/pricing#enterprise" className="text-slate-500 hover:text-slate-400 underline">Contact us</Link>
           </p>
         </div>
       </section>
@@ -448,22 +448,22 @@ export default async function Home() {
       {/* ====== CTA ====== */}
       <section className="py-20 bg-gradient-to-r from-emerald-900/20 to-blue-900/20 border-t border-avi-border/50">
         <div className="mx-auto max-w-3xl px-6 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Start Tracking AI Virality</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">The AI market moves fast. So should you.</h2>
           <p className="text-slate-400 mb-8 max-w-lg mx-auto">
-            Free dashboard, public API, no credit card required. See which AI models are gaining momentum right now.
+            Free dashboard. Real-time intelligence. No credit card required.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link
               href="/dashboard"
               className="rounded-lg bg-avi-green px-10 py-3.5 font-semibold text-white hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-900/30"
             >
-              Open Dashboard
+              See who&apos;s trending now
             </Link>
             <Link
               href="/docs"
               className="rounded-lg border border-avi-border px-10 py-3.5 font-semibold text-slate-300 hover:border-slate-400 hover:text-white transition-colors"
             >
-              Read API Docs
+              Explore the API
             </Link>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import AuthButton from '../components/AuthButton'
+import Analytics from '../components/Analytics'
 
 export const metadata: Metadata = {
   title: 'AI Virality Index — The Fear & Greed Index for AI Models',
@@ -41,6 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="min-h-screen bg-avi-dark text-slate-200 antialiased">
+        <Analytics />
         <header className="border-b border-avi-border px-6 py-4">
           <div className="mx-auto flex max-w-7xl items-center justify-between">
             <div className="flex items-center gap-2">

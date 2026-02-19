@@ -3,6 +3,8 @@
 import { useState, useMemo } from 'react'
 import CompareChart from './CompareChart'
 import ModeToggle from './ModeToggle'
+import UpsellBanner from './UpsellBanner'
+import { useUserPlan } from '../hooks/useUserPlan'
 import { getIndexColor, formatDelta } from '@/lib/utils'
 
 interface ModelInfo {
@@ -31,6 +33,8 @@ interface CompareViewProps {
 
 export default function CompareView({ models, historyMap, latestMap }: CompareViewProps) {
   const [mode, setMode] = useState<'trade' | 'content'>('trade')
+  const { plan, loading: planLoading } = useUserPlan()
+  const showUpsell = !planLoading && (plan === 'anon' || plan === 'free')
   const [selected, setSelected] = useState<string[]>(
     models.slice(0, 3).map((m) => m.slug)
   )
@@ -100,6 +104,8 @@ export default function CompareView({ models, historyMap, latestMap }: CompareVi
           )
         })}
       </div>
+
+      {showUpsell && <UpsellBanner variant="compare-signals" />}
 
       {selected.length < 2 && (
         <div className="rounded-xl bg-avi-card border border-avi-border p-8 text-center">

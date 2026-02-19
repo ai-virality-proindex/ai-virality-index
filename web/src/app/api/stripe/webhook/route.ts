@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getStripe, PLANS, PlanKey } from '../../../../lib/stripe'
+import { getStripe, PLANS, resolvePlanKey } from '../../../../lib/stripe'
 import { createServerClient } from '../../../../lib/supabase'
 import Stripe from 'stripe'
 
@@ -58,10 +58,10 @@ export async function POST(request: NextRequest) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session
       const userId = session.metadata?.supabase_user_id
-      const planKey = session.metadata?.avi_plan as PlanKey | undefined
+      const resolvedKey = resolvePlanKey(session.metadata?.avi_plan || '')
 
-      if (userId && planKey && PLANS[planKey]) {
-        const dbPlan = PLANS[planKey].dbPlan
+      if (userId && resolvedKey) {
+        const dbPlan = PLANS[resolvedKey].dbPlan
         await admin
           .from('user_profiles')
           .update({
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
           })
           .eq('id', userId)
 
-        console.log(`User ${userId} upgraded to ${dbPlan} (${planKey})`)
+        console.log(`User ${userId} upgraded to ${dbPlan} (${resolvedKey})`)
       }
       break
     }
@@ -109,13 +109,13 @@ export async function POST(request: NextRequest) {
         const priceId = subscription.items.data[0]?.price?.id
         if (priceId) {
           const price = await stripe.prices.retrieve(priceId)
-          const planKey = price.metadata?.avi_plan as PlanKey | undefined
+          const subPlanKey = resolvePlanKey(price.metadata?.avi_plan || '')
 
-          if (planKey && PLANS[planKey]) {
+          if (subPlanKey) {
             await admin
               .from('user_profiles')
               .update({
-                plan: PLANS[planKey].dbPlan,
+                plan: PLANS[subPlanKey].dbPlan,
                 stripe_subscription_id: subscription.id,
               })
               .eq('stripe_customer_id', customerId)
