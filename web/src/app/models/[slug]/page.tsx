@@ -51,6 +51,12 @@ export async function generateMetadata({
     openGraph: {
       title: `${name} — AI Virality Index`,
       description: `Virality tracking for ${name} by ${model?.company || 'unknown'}`,
+      images: [`/api/og?slug=${params.slug}`],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${name} Virality Index`,
+      images: [`/api/og?slug=${params.slug}`],
     },
   }
 }
@@ -109,12 +115,14 @@ async function getModelData(slug: string) {
     : null
 
   // 3. Get component breakdown (latest 2 days for delta calculation)
+  // Fetch enough rows to cover all 6 components across multiple days.
+  // Components may have different date ranges (e.g. D only has 1 day of data).
   const { data: breakdownRaw } = await supabase
     .from('component_scores')
     .select('date, component, normalized_value, smoothed_value')
     .eq('model_id', model.id)
     .order('date', { ascending: false })
-    .limit(12) // T, S, G, N, D, M × 2 days
+    .limit(42) // T, S, G, N, D, M × up to 7 days
 
   const LABELS: Record<string, string> = {
     T: 'Search Interest',
@@ -125,41 +133,47 @@ async function getModelData(slug: string) {
     M: 'Mindshare',
   }
 
-  // Legacy mapping: Q was renamed to D
-  const mapComp = (c: string) => c === 'Q' ? 'D' : c
+  const ALL_COMPONENTS = ['T', 'S', 'G', 'N', 'D', 'M']
 
-  // Separate into latest day and previous day
+  // Separate into latest day and previous day per component
   const byDate: Record<string, Record<string, number>> = {}
   for (const r of (breakdownRaw ?? []) as any[]) {
     if (!byDate[r.date]) byDate[r.date] = {}
     const val = r.smoothed_value != null ? Number(r.smoothed_value) : Number(r.normalized_value)
-    byDate[r.date][mapComp(r.component)] = val
+    byDate[r.date][r.component] = val
   }
   const sortedDates = Object.keys(byDate).sort().reverse() // newest first
-  const latestMap = byDate[sortedDates[0]] ?? {}
-  const prevMap = byDate[sortedDates[1]] ?? {}
 
-  // Deduplicate by component (keep latest) + compute delta
-  const seenComp = new Set<string>()
-  const breakdown = (breakdownRaw ?? [])
-    .filter((r: any) => {
-      const code = mapComp(r.component)
-      if (seenComp.has(code)) return false
-      seenComp.add(code)
-      return true
-    })
-    .map((r: any) => {
-      const code = mapComp(r.component)
-      const current = latestMap[code] ?? 0
-      const prev = prevMap[code]
-      return {
-        component: code,
-        label: LABELS[code] || code,
-        normalized_value: Number(r.normalized_value),
-        smoothed_value: r.smoothed_value != null ? Number(r.smoothed_value) : null,
-        delta: prev != null ? current - prev : null,
+  // Build latestMap: for each component, find its most recent value
+  const latestMap: Record<string, number> = {}
+  const prevMap: Record<string, number> = {}
+  for (const comp of ALL_COMPONENTS) {
+    let foundLatest = false
+    for (const d of sortedDates) {
+      if (byDate[d][comp] != null) {
+        if (!foundLatest) {
+          latestMap[comp] = byDate[d][comp]
+          foundLatest = true
+        } else {
+          prevMap[comp] = byDate[d][comp]
+          break
+        }
       }
-    })
+    }
+  }
+
+  // Build breakdown for all 6 components, even if some have no data
+  const breakdown = ALL_COMPONENTS.map((code) => {
+    const current = latestMap[code] ?? 0
+    const prev = prevMap[code]
+    return {
+      component: code,
+      label: LABELS[code] || code,
+      normalized_value: current,
+      smoothed_value: current,
+      delta: prev != null ? current - prev : null,
+    }
+  })
 
   // 3b. Get latest fetched_at from raw_metrics
   let lastFetchedAt: string | null = null

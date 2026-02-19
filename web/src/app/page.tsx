@@ -2,6 +2,7 @@ import { createServerClient } from '@/lib/supabase'
 import { getIndexColor, getIndexLabel, formatDelta } from '@/lib/utils'
 import IndexGauge from '@/components/IndexGauge'
 import Link from 'next/link'
+import NewsletterSignup from '@/components/NewsletterSignup'
 
 // --- Types ---
 
@@ -347,6 +348,13 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* ====== NEWSLETTER ====== */}
+      <section className="py-16 border-t border-avi-border/50">
+        <div className="mx-auto max-w-2xl px-6">
+          <NewsletterSignup source="landing" variant="inline" />
+        </div>
+      </section>
+
       {/* ====== INDEX COMPONENTS ====== */}
       <section className="py-20 bg-slate-900/50 border-t border-avi-border/50">
         <div className="mx-auto max-w-5xl px-6">
@@ -442,6 +450,77 @@ export default async function Home() {
           <p className="text-center text-xs text-slate-600 mt-6">
             Enterprise plans from $499/mo &mdash; custom indices, SLA, white-label. <Link href="/pricing#enterprise" className="text-slate-500 hover:text-slate-400 underline">Contact us</Link>
           </p>
+        </div>
+      </section>
+
+      {/* ====== EMBED PROMO ====== */}
+      <section className="py-20 border-t border-avi-border/50">
+        <div className="mx-auto max-w-5xl px-6">
+          <div className="grid sm:grid-cols-2 gap-10 items-center">
+            <div>
+              <h2 className="text-3xl font-bold text-white mb-4">Add AVI to Your Site</h2>
+              <p className="text-slate-400 mb-6 leading-relaxed">
+                Embed real-time AI virality scores on your blog, newsletter, or dashboard. Free for everyone, no API key needed.
+              </p>
+              <div className="space-y-3 text-sm text-slate-400 mb-6">
+                <div className="flex items-center gap-2">
+                  <span className="text-avi-green">&#10003;</span>
+                  One-line iframe embed
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-avi-green">&#10003;</span>
+                  Auto-updates daily
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-avi-green">&#10003;</span>
+                  Dark theme, responsive
+                </div>
+              </div>
+              <Link
+                href="/models/chatgpt"
+                className="text-sm text-avi-green hover:text-emerald-400 transition-colors font-medium"
+              >
+                See a live example &rarr;
+              </Link>
+            </div>
+            <div className="rounded-xl border border-avi-border bg-slate-900/50 p-4">
+              <p className="text-xs text-slate-500 mb-2 font-medium">Embed code</p>
+              <pre className="bg-avi-dark rounded-lg p-4 text-xs text-slate-300 overflow-x-auto border border-avi-border">
+{`<iframe
+  src="https://aiviralityindex.com/embed/chatgpt"
+  width="320" height="200"
+  frameborder="0"
+  style="border:none;border-radius:12px;">
+</iframe>`}
+              </pre>
+              <p className="text-xs text-slate-600 mt-3">
+                Replace <code className="text-emerald-400">chatgpt</code> with any model: gemini, claude, deepseek, grok, perplexity, copilot
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ====== WEEKLY REPORT CTA ====== */}
+      <section className="py-16 border-t border-avi-border/50">
+        <div className="mx-auto max-w-3xl px-6">
+          <div className="rounded-2xl border border-avi-border bg-gradient-to-r from-avi-card to-slate-800/50 p-8 sm:p-10 flex flex-col sm:flex-row items-center gap-6">
+            <div className="flex-1">
+              <div className="inline-block rounded-full bg-emerald-900/30 px-3 py-1 text-xs font-medium text-emerald-400 mb-3">
+                NEW
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Weekly AI Virality Report</h3>
+              <p className="text-sm text-slate-400">
+                Comprehensive PDF with scores, movers, component breakdown, and market signals. Just $7.
+              </p>
+            </div>
+            <Link
+              href="/report"
+              className="shrink-0 rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-500 transition-colors"
+            >
+              Get the Report
+            </Link>
+          </div>
         </div>
       </section>
 

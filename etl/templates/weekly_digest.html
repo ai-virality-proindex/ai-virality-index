@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Virality Weekly — {{ week_date }}</title>
+</head>
+<body style="margin:0; padding:0; background-color:#0F172A; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <!-- Wrapper -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0F172A;">
+    <tr>
+      <td align="center" style="padding:24px 16px;">
+        <!-- Content container -->
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%;">
+
+          <!-- Header -->
+          <tr>
+            <td style="padding:24px 32px; border-bottom:1px solid #334155;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <span style="font-size:24px; font-weight:bold; color:#10B981;">AVI</span>
+                    <span style="font-size:14px; color:#94A3B8; margin-left:8px;">AI Virality Index</span>
+                  </td>
+                  <td align="right">
+                    <span style="font-size:12px; color:#64748B;">{{ week_date }}</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Title -->
+          <tr>
+            <td style="padding:32px 32px 16px;">
+              <h1 style="margin:0; font-size:24px; font-weight:bold; color:#FFFFFF;">Weekly AI Virality Digest</h1>
+              <p style="margin:8px 0 0; font-size:14px; color:#94A3B8; line-height:1.5;">
+                Here's what happened this week in AI model virality.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Overview cards -->
+          <tr>
+            <td style="padding:16px 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <!-- Market Avg -->
+                  <td width="48%" style="background-color:#1E293B; border:1px solid #334155; border-radius:8px; padding:16px; vertical-align:top;">
+                    <span style="font-size:10px; color:#94A3B8; text-transform:uppercase; letter-spacing:1px;">Market Average</span><br>
+                    <span style="font-size:28px; font-weight:bold; color:{% if avg_score > 75 %}#10B981{% elif avg_score > 50 %}#EAB308{% elif avg_score > 25 %}#F59E0B{% else %}#EF4444{% endif %};">{{ "%.1f"|format(avg_score) }}</span>
+                  </td>
+                  <td width="4%"></td>
+                  <!-- Top Mover -->
+                  <td width="48%" style="background-color:#1E293B; border:1px solid #334155; border-radius:8px; padding:16px; vertical-align:top;">
+                    <span style="font-size:10px; color:#94A3B8; text-transform:uppercase; letter-spacing:1px;">Top Mover</span><br>
+                    {% if top_mover %}
+                    <span style="font-size:16px; font-weight:bold; color:#FFFFFF;">{{ top_mover.models.name }}</span><br>
+                    <span style="font-size:14px; color:{% if (top_mover.delta7_trade or 0) >= 0 %}#10B981{% else %}#EF4444{% endif %};">
+                      {% if (top_mover.delta7_trade or 0) >= 0 %}+{% endif %}{{ "%.1f"|format(top_mover.delta7_trade or 0) }} 7d
+                    </span>
+                    {% else %}
+                    <span style="font-size:14px; color:#64748B;">No data</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Scores table -->
+          <tr>
+            <td style="padding:16px 32px;">
+              <h2 style="margin:0 0 12px; font-size:16px; font-weight:bold; color:#FFFFFF;">All Models</h2>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #334155; border-radius:8px; overflow:hidden;">
+                <!-- Table header -->
+                <tr style="background-color:#1E293B;">
+                  <td style="padding:10px 12px; font-size:10px; color:#94A3B8; text-transform:uppercase; font-weight:bold;">Model</td>
+                  <td style="padding:10px 12px; font-size:10px; color:#94A3B8; text-transform:uppercase; font-weight:bold; text-align:right;">Score</td>
+                  <td style="padding:10px 12px; font-size:10px; color:#94A3B8; text-transform:uppercase; font-weight:bold; text-align:right;">7d</td>
+                </tr>
+                <!-- Model rows -->
+                {% for score in scores %}
+                <tr style="border-top:1px solid #1E293B;{% if loop.index is even %} background-color:rgba(30,41,59,0.3);{% endif %}">
+                  <td style="padding:10px 12px;">
+                    <span style="font-size:13px; font-weight:600; color:#E2E8F0;">{{ score.models.name }}</span>
+                    <br>
+                    <span style="font-size:11px; color:#64748B;">{{ score.models.company }}</span>
+                  </td>
+                  <td style="padding:10px 12px; text-align:right;">
+                    <span style="font-size:16px; font-weight:bold; color:{% if score.vi_trade > 75 %}#10B981{% elif score.vi_trade > 50 %}#EAB308{% elif score.vi_trade > 25 %}#F59E0B{% else %}#EF4444{% endif %};">
+                      {{ "%.1f"|format(score.vi_trade) }}
+                    </span>
+                  </td>
+                  <td style="padding:10px 12px; text-align:right;">
+                    {% if score.delta7_trade is not none %}
+                    <span style="font-size:12px; font-weight:600; color:{% if score.delta7_trade >= 0 %}#10B981{% else %}#EF4444{% endif %};">
+                      {% if score.delta7_trade >= 0 %}+{% endif %}{{ "%.1f"|format(score.delta7_trade) }}
+                    </span>
+                    {% else %}
+                    <span style="font-size:12px; color:#64748B;">—</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </table>
+            </td>
+          </tr>
+
+          <!-- CTA -->
+          <tr>
+            <td style="padding:24px 32px;" align="center">
+              <a href="{{ site_url }}/dashboard" style="display:inline-block; background-color:#10B981; color:#FFFFFF; font-size:14px; font-weight:600; text-decoration:none; padding:12px 32px; border-radius:8px;">
+                View Live Dashboard &rarr;
+              </a>
+            </td>
+          </tr>
+
+          <!-- Report promo -->
+          <tr>
+            <td style="padding:0 32px 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#1E293B; border:1px solid #334155; border-radius:8px;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <span style="font-size:13px; font-weight:bold; color:#FFFFFF;">Want the full analysis?</span><br>
+                    <span style="font-size:12px; color:#94A3B8;">Get the comprehensive Weekly Report PDF — scores, breakdown, signals. Just $7.</span>
+                  </td>
+                  <td style="padding:16px 20px;" align="right">
+                    <a href="{{ site_url }}/report" style="display:inline-block; background-color:#10B981; color:#FFFFFF; font-size:12px; font-weight:600; text-decoration:none; padding:8px 16px; border-radius:6px;">
+                      Get Report
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:24px 32px; border-top:1px solid #334155;">
+              <p style="margin:0; font-size:11px; color:#64748B; line-height:1.5;">
+                You're receiving this because you subscribed to the AI Virality Index newsletter.
+                <br>
+                <a href="{{ unsubscribe_url }}" style="color:#64748B; text-decoration:underline;">Unsubscribe</a>
+                &nbsp;|&nbsp;
+                <a href="{{ site_url }}" style="color:#64748B; text-decoration:underline;">Visit AVI</a>
+              </p>
+              <p style="margin:12px 0 0; font-size:10px; color:#475569;">
+                &copy; 2026 AI Virality Index. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

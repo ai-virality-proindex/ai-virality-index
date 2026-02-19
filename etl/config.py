@@ -32,6 +32,9 @@ REDDIT_USER_AGENT = os.getenv("REDDIT_USER_AGENT", "AVI/1.0")
 UPSTASH_REDIS_URL = os.getenv("UPSTASH_REDIS_URL", "")
 UPSTASH_REDIS_TOKEN = os.getenv("UPSTASH_REDIS_TOKEN", "")
 
+# --- Resend (email digest) ---
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
+
 # --- Index Configuration ---
 MODELS_CONFIG_PATH = Path(__file__).parent / "models_config.yaml"
 

@@ -55,6 +55,7 @@ export default function RootLayout({
               <a href="/dashboard" className="hover:text-white transition-colors">Dashboard</a>
               <a href="/compare" className="hover:text-white transition-colors hidden sm:inline">Compare</a>
               <a href="/pricing" className="hover:text-white transition-colors">Pricing</a>
+              <a href="/blog" className="hover:text-white transition-colors hidden sm:inline">Blog</a>
               <a href="/docs" className="hover:text-white transition-colors hidden sm:inline">API Docs</a>
               <AuthButton />
             </nav>

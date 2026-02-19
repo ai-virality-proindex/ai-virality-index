@@ -57,6 +57,13 @@ export async function POST(request: NextRequest) {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session
+
+      // Skip plan upgrade for one-time report purchases
+      if (session.metadata?.avi_product === 'weekly_report') {
+        console.log('Report purchase completed — no plan change needed')
+        break
+      }
+
       const userId = session.metadata?.supabase_user_id
       const resolvedKey = resolvePlanKey(session.metadata?.avi_plan || '')
 

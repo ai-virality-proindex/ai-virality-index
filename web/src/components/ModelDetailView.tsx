@@ -7,6 +7,7 @@ import BreakdownRadar from './BreakdownRadar'
 import ModeToggle from './ModeToggle'
 import UpdateCountdown from './UpdateCountdown'
 import UpsellBanner from './UpsellBanner'
+import ShareButtons from './ShareButtons'
 import { useUserPlan } from '../hooks/useUserPlan'
 import { getIndexColor, formatDelta } from '@/lib/utils'
 
@@ -99,7 +100,10 @@ export default function ModelDetailView({
             <p className="text-sm text-slate-500">{model.company}</p>
           </div>
         </div>
-        <ModeToggle mode={mode} onChange={setMode} />
+        <div className="flex items-center gap-4">
+          <ShareButtons title={`${model.name} Virality Index`} />
+          <ModeToggle mode={mode} onChange={setMode} />
+        </div>
       </div>
 
       {latestScore ? (

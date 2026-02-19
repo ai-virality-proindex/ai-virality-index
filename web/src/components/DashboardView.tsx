@@ -9,6 +9,7 @@ import ModeToggle from './ModeToggle'
 import UpdateCountdown from './UpdateCountdown'
 import UpsellBanner from './UpsellBanner'
 import WelcomeModal from './WelcomeModal'
+import NewsletterSignup from './NewsletterSignup'
 import { useUserPlan } from '../hooks/useUserPlan'
 
 interface DashboardViewProps {
@@ -164,6 +165,27 @@ export default function DashboardView({
             <h2 className="text-lg font-semibold text-white mb-3">Top Movers (7d)</h2>
             <TopMovers scores={scores} mode={mode} />
           </div>
+
+          {/* Report CTA card */}
+          <div className="rounded-xl border border-avi-border bg-avi-card p-5 flex flex-col sm:flex-row items-center gap-4">
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-white">Weekly AI Virality Report</p>
+              <p className="text-xs text-slate-400 mt-1">
+                Comprehensive PDF: scores, movers, breakdown, signals. Just $7.
+              </p>
+            </div>
+            <a
+              href="/report"
+              className="shrink-0 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-500 transition-colors"
+            >
+              Get Report
+            </a>
+          </div>
+
+          {/* Newsletter banner for free/anon users */}
+          {showUpsell && (
+            <NewsletterSignup source="dashboard" variant="banner" />
+          )}
         </>
       )}
     </div>

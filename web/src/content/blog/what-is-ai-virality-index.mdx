@@ -1,0 +1,84 @@
+---
+title: "What Is the AI Virality Index? The Fear & Greed Index for AI Models"
+description: "Introducing AVI — a real-time composite index (0-100) that tracks the virality of 7 major AI models across 6 data sources. Like the Fear & Greed Index, but for AI."
+date: "2026-02-18"
+author: "AVI Team"
+tags: ["guide", "index"]
+---
+
+## The Problem: Everyone Guesses, Nobody Knows
+
+Ask a trader which AI model is trending right now and you'll get opinions. Check Twitter and you'll get hype. Read the news and you'll get yesterday's story.
+
+But none of these sources give you a single, reliable number that captures the full picture. Until now.
+
+## What Is AVI?
+
+The **AI Virality Index (AVI)** is a composite index from 0 to 100 that measures how much attention each major AI model is receiving — right now. Think of it as the [Fear & Greed Index](https://edition.cnn.com/markets/fear-and-greed), but for AI models.
+
+We track **7 models**: ChatGPT, Gemini, Claude, DeepSeek, Grok, Perplexity, and Copilot.
+
+Each model gets a score based on **6 data components**:
+
+| Code | Component | Source |
+|------|-----------|--------|
+| **T** | Search Interest | Google Trends |
+| **S** | Social Buzz | YouTube + Hacker News |
+| **G** | GitHub Activity | Stars, forks, issues |
+| **N** | News Coverage | GDELT global news |
+| **D** | Dev Adoption | npm + PyPI downloads |
+| **M** | Mindshare | Wikipedia pageviews |
+
+Raw signals are normalized using rolling quantiles, Winsorized to remove outliers, and smoothed with an exponentially weighted moving average (EWMA). The result is a clean 0-100 score that's updated daily.
+
+## Two Modes for Two Audiences
+
+AVI isn't one-size-fits-all. We offer two weighted formulas:
+
+### Trading Mode
+Designed for prediction market and crypto traders. Weights social signals and developer adoption higher because they're leading indicators of market moves.
+
+```
+0.18×T + 0.28×S + 0.15×G + 0.12×N + 0.15×D + 0.12×M
+```
+
+### Content Mode
+Built for YouTubers, bloggers, and marketers who need to know which AI topics will drive engagement. Weights search trends and social buzz higher.
+
+```
+0.25×T + 0.35×S + 0.05×G + 0.20×N + 0.05×D + 0.10×M
+```
+
+## How to Read the Index
+
+| Score | Meaning |
+|-------|---------|
+| **0–25** | Cold — minimal attention |
+| **26–50** | Warming — moderate interest |
+| **51–75** | Hot — significant buzz |
+| **76–100** | Viral — maximum attention |
+
+A score of 72 for ChatGPT means it's generating significant attention across multiple channels. If that score jumped from 45 a week ago, something happened — and you probably want to know what.
+
+## Why This Matters
+
+For **traders**: Virality often precedes price action in prediction markets. When a model's AVI score spikes, it can signal an upcoming shift in market sentiment.
+
+For **content creators**: Publishing content about a model when its AVI score is rising means you're riding the wave, not chasing it.
+
+For **developers**: Tracking developer adoption (npm/PyPI downloads) alongside social buzz helps identify which AI platforms are gaining real traction vs. just hype.
+
+## What's Next
+
+We're building more features every week:
+
+- **Trading signals** that fire when the index diverges from market prices
+- **Weekly reports** with detailed analysis of movers and trends
+- **API access** for building your own tools on top of AVI data
+- **Email digest** with weekly highlights delivered to your inbox
+
+---
+
+Ready to see which AI model is trending right now?
+
+[Open the Dashboard →](/dashboard)

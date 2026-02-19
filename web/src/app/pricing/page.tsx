@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createAuthBrowserClient } from '../../lib/supabase'
 import { trackConversion } from '../../lib/analytics'
 import ContactForm from '../../components/ContactForm'
+import NewsletterSignup from '../../components/NewsletterSignup'
 
 interface PlanConfig {
   name: string
@@ -280,6 +281,11 @@ export default function PricingPage() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Newsletter signup */}
+      <div className="mt-16 mx-auto max-w-2xl">
+        <NewsletterSignup source="pricing" variant="inline" />
       </div>
 
       {/* Enterprise contact form */}

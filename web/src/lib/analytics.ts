@@ -7,6 +7,8 @@ type ConversionEvent =
   | 'signup_completed'
   | 'upsell_clicked'
   | 'trial_started'
+  | 'newsletter_signup'
+  | 'share_clicked'
 
 declare global {
   interface Window {

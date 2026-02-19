@@ -134,10 +134,13 @@ def calculate_index(
         history = _fetch_component_history(model_id, comp_code, days=90)
 
         if not history:
-            # No data for this component: default to 50 (neutral)
+            # No data for this component: default to 0 (no signal)
+            # Previously defaulted to 50 which was misleading — models
+            # without a data source (e.g. Perplexity has no GitHub repos)
+            # appeared to have average activity when they had none.
             components_raw[comp_code] = 0.0
-            components_normalized[comp_code] = 50.0
-            components_smoothed[comp_code] = 50.0
+            components_normalized[comp_code] = 0.0
+            components_smoothed[comp_code] = 0.0
             continue
 
         # Raw value is the latest
@@ -344,8 +347,8 @@ def run_daily_calculation(calc_date: date) -> dict[str, Any]:
                     "date": calc_date.isoformat(),
                     "component": comp_code,
                     "raw_value": trade_result["components_raw"].get(comp_code, 0),
-                    "normalized_value": trade_result["components_normalized"].get(comp_code, 50),
-                    "smoothed_value": trade_result["components_smoothed"].get(comp_code, 50),
+                    "normalized_value": trade_result["components_normalized"].get(comp_code, 0),
+                    "smoothed_value": trade_result["components_smoothed"].get(comp_code, 0),
                 }
                 client.table("component_scores").upsert(
                     comp_row,
@@ -378,7 +381,7 @@ def run_daily_calculation(calc_date: date) -> dict[str, Any]:
             # Build component breakdown JSON
             breakdown = {}
             for comp_code in ["T", "S", "G", "N", "D", "M"]:
-                breakdown[comp_code] = trade_result["components_smoothed"].get(comp_code, 50)
+                breakdown[comp_code] = trade_result["components_smoothed"].get(comp_code, 0)
 
             # Upsert daily scores
             daily_row = {

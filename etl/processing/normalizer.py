@@ -73,6 +73,10 @@ def quantile_normalize(
 
     # Edge case: all same values
     if q95 == q05:
+        # If all zeros → no signal → return 0.
+        # If non-zero identical values → return 50 (neutral).
+        if q95 == 0.0:
+            return 0.0
         return 50.0
 
     # Winsorize (clip to quantile range)
@@ -99,6 +103,12 @@ def _minmax_normalize(arr: np.ndarray, current_value: float) -> float:
     vmax = float(arr.max())
 
     if vmax == vmin:
+        # All values identical — no variance to normalize against.
+        # If all zeros → no signal → return 0.
+        # If non-zero identical values → we have data but too little
+        # history for meaningful normalization → return 50 (neutral).
+        if vmax == 0.0:
+            return 0.0
         return 50.0
 
     clipped = max(vmin, min(current_value, vmax))
