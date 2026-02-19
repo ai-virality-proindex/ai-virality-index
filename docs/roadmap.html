@@ -191,7 +191,7 @@
         <div class="overall-progress">
             <h2>Общий прогресс</h2>
             <div class="progress-bar-outer">
-                <div class="progress-bar-inner" style="width: 85%;">85%</div>
+                <div class="progress-bar-inner" style="width: 87%;">87%</div>
             </div>
             <div class="progress-stats">
                 <span>Выполнено задач: 54 из 73</span>
@@ -816,11 +816,11 @@ Content: 0.25*T + 0.35*S + 0.05*G + 0.20*N + 0.05*D + 0.10*M</pre>
                 <div class="phase-card future" style="border-color: #ef4444 !important; opacity: 1 !important;">
                     <div class="phase-header">
                         <span class="phase-title">&#128293; Phase 10: Валидация индекса (КРИТИЧНО)</span>
-                        <span class="phase-badge" style="background: #7f1d1d; color: #fca5a5;">Приоритет #1</span>
+                        <span class="phase-badge" style="background: #92400e; color: #fcd34d;">В процессе</span>
                     </div>
-                    <p class="phase-desc">Без подтверждения что индекс работает и имеет ценность — всё остальное бессмысленно. Бэктест на исторических событиях, проверка корреляций, сбор 14 дней данных. <strong style="color: #ef4444;">Старт: 19 февраля 2026 (ждём 14 дней данных до 2 марта)</strong></p>
+                    <p class="phase-desc">Без подтверждения что индекс работает и имеет ценность — всё остальное бессмысленно. Бэктест на исторических событиях, проверка корреляций, сбор 14 дней данных. <strong style="color: #f59e0b;">Старт: 19 февраля 2026 — исправлена нормализация, данные накапливаются</strong></p>
                     <ul class="tasks-list">
-                        <li class="task-future"><span class="task-icon">&#9675;</span> 10.1 — Собрать 14 дней непрерывных данных (ETL без сбоев)</li>
+                        <li class="task-active"><span class="task-icon">&#128309;</span> 10.1 — Собрать 14 дней непрерывных данных (ETL без сбоев) — 4 дня из 14, cross-model нормализация исправлена</li>
                         <li class="task-future"><span class="task-icon">&#9675;</span> 10.2 — Бэктест: проверить индекс на известных событиях (DeepSeek R1, GPT-4o, Gemini 2.0)</li>
                         <li class="task-future"><span class="task-icon">&#9675;</span> 10.3 — Корреляция: сравнить VI с DevAdoption (лаг 24-48ч?)</li>
                         <li class="task-future"><span class="task-icon">&#9675;</span> 10.4 — Стресс-тест: что показывает индекс при "тишине" vs "шторме"?</li>
