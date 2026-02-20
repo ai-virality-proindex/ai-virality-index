@@ -12,6 +12,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/compare`, lastModified: now, changeFrequency: 'daily', priority: 0.7 },
     { url: `${base}/pricing`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${base}/docs`, lastModified: now, changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${base}/blog`, lastModified: now, changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${base}/llms.txt`, lastModified: now, changeFrequency: 'monthly', priority: 0.3 },
+    { url: `${base}/llms-full.txt`, lastModified: now, changeFrequency: 'daily', priority: 0.4 },
   ]
 
   const modelPages: MetadataRoute.Sitemap = MODELS.map((slug) => ({

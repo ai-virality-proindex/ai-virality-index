@@ -1,0 +1,43 @@
+# AI Virality Index
+
+> Real-time virality index (0–100) for the world's leading AI models, updated daily.
+
+AI Virality Index tracks how 7 major AI models trend across the internet by aggregating data from 6 independent signal sources into a single composite score.
+
+## Models Tracked
+
+- ChatGPT (OpenAI)
+- Gemini (Google)
+- Claude (Anthropic)
+- Perplexity (Perplexity AI)
+- DeepSeek (DeepSeek)
+- Grok (xAI)
+- Copilot (Microsoft)
+
+## Index Components
+
+The virality score (0–100) is computed from 6 weighted components:
+
+- **T — Search Interest**: Google Trends search volume
+- **S — Social**: YouTube video activity + Hacker News discussions
+- **G — GitHub**: Stars, forks, and issues on official repositories
+- **N — News**: Global media coverage via GDELT
+- **D — Dev Adoption**: Daily npm + PyPI SDK download counts
+- **M — Mindshare**: Wikipedia pageview volume
+
+## Scoring Modes
+
+**Trading Mode** (optimized for momentum signals):
+`VI = 0.18×T + 0.28×S + 0.15×G + 0.12×N + 0.15×D + 0.12×M`
+
+**Content Mode** (optimized for content creators):
+`VI = 0.25×T + 0.35×S + 0.05×G + 0.20×N + 0.05×D + 0.10×M`
+
+## Links
+
+- Website: https://ai-virality-index.vercel.app
+- Dashboard: https://ai-virality-index.vercel.app/dashboard
+- API (free tier): https://ai-virality-index.vercel.app/api/v1/index/latest
+- Full data for LLMs: https://ai-virality-index.vercel.app/llms-full.txt
+- Blog: https://ai-virality-index.vercel.app/blog
+- Methodology: https://ai-virality-index.vercel.app/blog/what-is-ai-virality-index
