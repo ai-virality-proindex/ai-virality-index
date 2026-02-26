@@ -39,12 +39,15 @@ export default function CompareView({ models, historyMap, latestMap }: CompareVi
     models.slice(0, 3).map((m) => m.slug)
   )
 
+  const isPro = !planLoading && plan !== 'anon' && plan !== 'free'
+  const maxModels = isPro ? 7 : 3
+
   const toggleModel = (slug: string) => {
     setSelected((prev) => {
       if (prev.includes(slug)) {
         return prev.filter((s) => s !== slug)
       }
-      if (prev.length >= 4) return prev // max 4
+      if (prev.length >= maxModels) return prev
       return [...prev, slug]
     })
   }
@@ -71,7 +74,9 @@ export default function CompareView({ models, historyMap, latestMap }: CompareVi
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Compare Models</h1>
-          <p className="text-sm text-slate-500 mt-1">Select 2-4 models to compare</p>
+          <p className="text-sm text-slate-500 mt-1">
+            Select 2-{maxModels} models to compare{!isPro && ' (upgrade to Pro for all 7)'}
+          </p>
         </div>
         <ModeToggle mode={mode} onChange={setMode} />
       </div>

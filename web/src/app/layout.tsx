@@ -62,6 +62,22 @@ export default function RootLayout({
           </div>
         </header>
         <main>{children}</main>
+        <footer className="border-t border-avi-border py-8 mt-auto">
+          <div className="mx-auto max-w-7xl px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-bold text-slate-500">AVI</span>
+              <span className="text-xs text-slate-600">&copy; {new Date().getFullYear()} AI Virality Index</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600">
+              <a href="/dashboard" className="hover:text-slate-400 transition-colors">Dashboard</a>
+              <a href="/compare" className="hover:text-slate-400 transition-colors">Compare</a>
+              <a href="/pricing" className="hover:text-slate-400 transition-colors">Pricing</a>
+              <a href="/docs" className="hover:text-slate-400 transition-colors">API</a>
+              <a href="/blog" className="hover:text-slate-400 transition-colors">Blog</a>
+              <a href="mailto:getdroneservices@gmail.com" className="hover:text-slate-400 transition-colors">Contact</a>
+            </div>
+          </div>
+        </footer>
       </body>
     </html>
   )

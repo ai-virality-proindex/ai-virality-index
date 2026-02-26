@@ -558,6 +558,9 @@ export default async function Home() {
               <p className="text-sm text-slate-500 leading-relaxed max-w-sm">
                 The Fear &amp; Greed Index for AI models. Track virality, catch momentum shifts, and make better decisions.
               </p>
+              <a href="mailto:getdroneservices@gmail.com" className="text-sm text-slate-500 hover:text-slate-300 transition-colors mt-2 inline-block">
+                getdroneservices@gmail.com
+              </a>
             </div>
             {/* Product */}
             <div>
@@ -584,6 +587,7 @@ export default async function Home() {
             <div className="flex gap-4 text-xs text-slate-600">
               <Link href="/docs" className="hover:text-slate-400 transition-colors">API</Link>
               <Link href="/pricing" className="hover:text-slate-400 transition-colors">Pricing</Link>
+              <a href="mailto:getdroneservices@gmail.com" className="hover:text-slate-400 transition-colors">Contact</a>
             </div>
           </div>
         </div>
