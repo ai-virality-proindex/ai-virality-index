@@ -9,7 +9,39 @@
 
 **Store:** stavery-2.myshopify.com
 **Shopify App:** "MCP Admin" (created in Shopify Partner Dashboard)
-**Goal:** Connect Claude Code to Shopify via MCP servers to manage theme and store.
+
+---
+
+## Background & Goal
+
+Пользователь уехал в поездку на ~2 недели **без ПК** (только iPad). Домашний ПК
+включён, но недоступен — случайно отключил WiFi через TeamViewer. Поэтому вся работа
+ведётся через Claude Code на планшете.
+
+**Ситуация с темами:**
+- На Shopify есть **кастомная тема**, созданная ранее с PC через Claude. В ней правильная
+  структура сайта и тексты, но она **не редактируется через Shopify UI** — кривая разметка,
+  кастомные секции не распознаются визуальным редактором.
+- Пользователь создал **новую стандартную тему** на Shopify, которая нормально
+  редактируется через UI.
+
+**Главная задача:** Claude подключается к Shopify через MCP и **переносит контент**
+(тексты, структуру страниц) с кастомной темы на новую стандартную тему. Переносятся
+только данные/тексты — сами блоки и секции новой темы не трогаем, используем
+стандартные блоки новой темы.
+
+**Почему Claude, а не вручную:** С iPad редактировать тему долго и неудобно. Claude
+через MCP API может читать и менять тему программно — это быстрее и точнее.
+
+**Ситуация с GitHub:**
+- Новый GitHub аккаунт (для Shopify) не удаётся подключить — глючит.
+- Старый аккаунт `ai-virality-proindex` — нет доступа с мобильного (2FA шлёт код на
+  старый номер телефона, который уже не работает).
+- **Временное решение:** используем текущий репо `ai-virality-proindex/ai-virality-index`,
+  но Shopify файлы хранятся **строго отдельно** в `shopify-theme/` и `docs/SHOPIFY_SESSION.md`.
+- Когда доступ к ПК восстановится — перенесём всё на отдельный Shopify-репо.
+
+**Дедлайн:** ~2 недели (до возвращения домой). Магазин должен быть готов.
 
 ---
 
@@ -92,6 +124,15 @@ Read: docs/SHOPIFY_SESSION.md
 Store: stavery-2.myshopify.com
 App: "MCP Admin" (Partner Dashboard)
 
+### Context
+Пользователь в поездке ~2 нед. без ПК (только iPad). Нужно подготовить Shopify магазин.
+На Shopify есть кастомная тема (с правильным контентом, но кривой разметкой — не
+редактируется через UI) и новая стандартная тема (редактируется нормально).
+
+ЗАДАЧА: Через MCP подключиться к Shopify, прочитать контент из кастомной темы и
+перенести тексты/структуру в новую стандартную тему. Блоки и секции новой темы
+не трогать — использовать стандартные, только заполнить контентом.
+
 ### Credentials
 - Stored in ~/.claude.json (mcpServers.shopify section)
 - Access token is temporary (24h) — may need refresh via OAuth client credentials flow
@@ -105,16 +146,17 @@ App: "MCP Admin" (Partner Dashboard)
 - hero.liquid template exists on branch `claude/shopify-theme-setup-ZlPXn`
 
 ### What's next
-1. Restart Claude Code so MCP servers load
-2. Run `claude mcp list` to verify both servers
-3. Test connection: fetch store info via shopify-mcp
-4. Deploy hero.liquid to the live Shopify theme
-5. Continue theme development
+1. Run `claude mcp list` to verify both servers loaded
+2. Test connection: fetch store info via shopify-mcp
+3. List themes — find кастомная (source) and новая стандартная (target)
+4. Read content from кастомная тема
+5. Transfer content to новая стандартная тема
+6. Continue building out the store
 
 ### Important
-- This is a SEPARATE project from AI Virality Index
-- Do NOT mix Shopify work with AI Virality Index files
+- This is a SEPARATE project from AI Virality Index — do NOT mix
 - Shopify theme files go in `shopify-theme/` directory
+- Временно используем репо ai-virality-proindex — потом перенесём
 - Full docs: docs/SHOPIFY_SESSION.md
 ```
 
