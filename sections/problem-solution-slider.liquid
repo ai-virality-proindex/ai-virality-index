@@ -1,0 +1,577 @@
+{% comment %}
+  StaverY — Before After Slider
+  sections/problem-solution-slider.liquid
+{% endcomment %}
+
+{%- liquid
+  assign sec = section.settings
+  assign pad_top    = sec.padding_top | default: 96
+  assign pad_bottom = sec.padding_bottom | default: 96
+-%}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+<style>
+  #pvs-{{ section.id }} {
+    --pvs-bg:          {{ sec.bg_color }};
+    --pvs-heading:     {{ sec.heading_color }};
+    --pvs-body:        {{ sec.body_color }};
+    --pvs-label-sol:   {{ sec.label_solution_color }};
+    --pvs-label-prob:  {{ sec.label_problem_color }};
+    --pvs-before-bg:   {{ sec.before_bg_color }};
+    --pvs-after-bg:    {{ sec.after_bg_color }};
+    --pvs-handle:      {{ sec.handle_color }};
+    --pvs-title-size:  {{ sec.title_font_size }}px;
+    --pvs-sub-size:    {{ sec.sub_font_size }}px;
+    --pvs-card-label:  {{ sec.card_label_size }}px;
+    --pvs-card-head:   {{ sec.card_heading_size }}px;
+    --pvs-card-body:   {{ sec.card_body_size }}px;
+    --pvs-card-height: {{ sec.card_height }}px;
+    --pvs-img-height:  {{ sec.image_height }}px;
+    --pvs-radius:      {{ sec.card_radius }}px;
+    --pvs-gap:         {{ sec.card_gap }}px;
+    --pvs-pad:         {{ sec.card_padding | default: 28 }}px;
+    --pvs-ff-serif: {% if sec.use_theme_heading_font %}{{ settings.type_header_font.family | default: 'Recoleta' }}, Georgia, serif{% else %}Recoleta, 'DM Serif Display', Georgia, serif{% endif %};
+    --pvs-ff-sans:  {% if sec.use_theme_body_font %}{{ settings.type_body_font.family | default: 'DM Sans' }}, system-ui, sans-serif{% else %}'DM Sans', system-ui, sans-serif{% endif %};
+    background-color: var(--pvs-bg);
+    color: var(--pvs-heading);
+    font-family: var(--pvs-ff-sans);
+    -webkit-font-smoothing: antialiased;
+    padding: {{ pad_top }}px 0 {{ pad_bottom }}px;
+    overflow-x: hidden;
+  }
+  #pvs-{{ section.id }} * { box-sizing: border-box; }
+
+  /*
+   * NUCLEAR RESET: Prevent Horizon theme from applying grid/flex/offset
+   * to this section or its children. Horizon's .section is display:grid
+   * with grid-template-columns, so we must completely opt out.
+   */
+  #pvs-{{ section.id }},
+  #pvs-{{ section.id }}.section {
+    display: block !important;
+    grid-template-columns: none !important;
+  }
+
+  .pvs-inner-{{ section.id }} {
+    max-width: {{ sec.max_width | default: 1400 }}px;
+    margin: 0 auto;
+    padding: 0 {{ sec.section_side_padding | default: 24 }}px;
+  }
+  @media (min-width: 768px) {
+    .pvs-inner-{{ section.id }} {
+      padding: 0 {{ sec.section_side_padding_desktop | default: 48 }}px;
+    }
+  }
+
+  .pvs-header-{{ section.id }} {
+    text-align: {{ sec.header_align | default: 'center' }};
+    margin-bottom: {{ sec.header_margin_bottom | default: 64 }}px;
+  }
+  .pvs-title-{{ section.id }} {
+    font-family: var(--pvs-ff-serif);
+    font-size: clamp(1.8rem, 4vw, var(--pvs-title-size));
+    font-weight: {{ sec.title_font_weight | default: 500 }};
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--pvs-heading);
+    max-width: {{ sec.title_max_width | default: 800 }}px;
+    {%- if sec.header_align == 'center' %} margin: 0 auto; {%- endif %}
+  }
+  .pvs-sub-{{ section.id }} {
+    margin-top: 20px;
+    font-family: var(--pvs-ff-sans);
+    font-size: var(--pvs-sub-size);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    color: var(--pvs-body);
+    opacity: 0.65;
+  }
+
+  /* Grid */
+  .pvs-grid-{{ section.id }} {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: var(--pvs-gap) !important;
+    width: 100% !important;
+    align-items: start !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  @media (min-width: 768px) {
+    .pvs-grid-{{ section.id }} {
+      grid-template-columns: repeat({{ sec.columns | default: 3 }}, 1fr) !important;
+    }
+  }
+  /* Kill theme nth-child offsets on grid items (cards) */
+  #pvs-{{ section.id }} .pvs-grid-{{ section.id }} > * {
+    margin: 0 !important;
+    margin-block: 0 !important;
+    margin-inline: 0 !important;
+    padding: 0 !important;
+    padding-block: 0 !important;
+    padding-inline: 0 !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    inset: auto !important;
+    transform: none !important;
+    translate: none !important;
+    rotate: none !important;
+    scale: none !important;
+    position: relative !important;
+    align-self: start !important;
+    justify-self: stretch !important;
+    float: none !important;
+    grid-row: auto !important;
+  }
+
+  /* Card */
+  .pvs-card-{{ section.id }} {
+    position: relative !important;
+    width: 100% !important;
+    height: var(--pvs-card-height) !important;
+    border-radius: var(--pvs-radius);
+    overflow: hidden;
+    cursor: col-resize;
+    box-shadow: 0 20px 60px -10px rgba(0,0,0,0.10);
+    user-select: none;
+    -webkit-user-select: none;
+    isolation: isolate;
+  }
+
+  /*
+   * CRITICAL FIX: Reset theme nth-child offsets on card layers.
+   * Horizon theme targets nth-child(2) divs with offsets.
+   * Reset EVERYTHING that could cause vertical misalignment.
+   * Use ID selector for maximum specificity.
+   *
+   * NOTE: We do NOT set left/right here because the handle
+   * needs JS to control its left position via inline styles,
+   * and !important in CSS beats non-!important inline styles.
+   */
+  #pvs-{{ section.id }} .pvs-card-{{ section.id }} > * {
+    margin: 0 !important;
+    margin-block: 0 !important;
+    margin-inline: 0 !important;
+    padding: 0 !important;
+    padding-block: 0 !important;
+    padding-inline: 0 !important;
+    transform: none !important;
+    translate: none !important;
+    rotate: none !important;
+    scale: none !important;
+    float: none !important;
+    grid-row: auto !important;
+    grid-column: auto !important;
+    align-self: auto !important;
+    justify-self: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+
+  /* AFTER layer — full size, bottom layer */
+  #pvs-{{ section.id }} .pvs-after-{{ section.id }} {
+    position: absolute !important;
+    inset: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 10 !important;
+    background: var(--pvs-after-bg);
+    width: 100% !important;
+    height: 100% !important;
+  }
+  #pvs-{{ section.id }} .pvs-after-inner-{{ section.id }} {
+    position: absolute !important;
+    inset: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    padding: var(--pvs-pad) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-end !important;
+    margin: 0 !important;
+    margin-block: 0 !important;
+    transform: none !important;
+    translate: none !important;
+  }
+
+  /* BEFORE layer — full size, top layer, clipped right by JS */
+  #pvs-{{ section.id }} .pvs-before-{{ section.id }} {
+    position: absolute !important;
+    inset: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 20 !important;
+    background: var(--pvs-before-bg);
+    clip-path: inset(0 50% 0 0);
+    width: 100% !important;
+    height: 100% !important;
+  }
+  #pvs-{{ section.id }} .pvs-before-inner-{{ section.id }} {
+    position: absolute !important;
+    inset: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    padding: var(--pvs-pad) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-end !important;
+    background: rgba(240,236,230,{{ sec.before_overlay_opacity | default: '0.35' }});
+    filter: grayscale({{ sec.before_grayscale | default: 25 }}%);
+    margin: 0 !important;
+    margin-block: 0 !important;
+    transform: none !important;
+    translate: none !important;
+  }
+
+  /* Images */
+  #pvs-{{ section.id }} .pvs-img-{{ section.id }} {
+    width: 100% !important;
+    height: var(--pvs-img-height) !important;
+    object-fit: cover;
+    border-radius: calc(var(--pvs-radius) - 4px);
+    margin: 0 0 {{ sec.image_margin_bottom | default: 24 }}px 0 !important;
+    display: block !important;
+    flex-shrink: 0;
+    pointer-events: none;
+  }
+  .pvs-img-before-{{ section.id }} {
+    opacity: {{ sec.before_image_opacity | default: '0.82' }};
+  }
+
+  /* Text — reset Horizon's default h3/p margins with ID specificity */
+  #pvs-{{ section.id }} .pvs-label-{{ section.id }} {
+    display: block !important;
+    font-size: var(--pvs-card-label);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    margin: 0 0 7px 0 !important;
+    margin-block: 0 0 !important;
+    flex-shrink: 0;
+  }
+  .pvs-label-sol-{{ section.id }}  { color: var(--pvs-label-sol); }
+  .pvs-label-prob-{{ section.id }} { color: var(--pvs-label-prob); }
+
+  #pvs-{{ section.id }} .pvs-card-heading-{{ section.id }} {
+    font-family: var(--pvs-ff-serif);
+    font-size: var(--pvs-card-head);
+    font-weight: {{ sec.card_heading_weight | default: 600 }};
+    line-height: 1.15;
+    color: var(--pvs-heading);
+    margin: 0 0 8px 0 !important;
+    margin-block: 0 0 !important;
+    flex-shrink: 0;
+  }
+  .pvs-card-heading-before-{{ section.id }} { opacity: 0.72; }
+
+  #pvs-{{ section.id }} .pvs-card-body-{{ section.id }} {
+    font-size: var(--pvs-card-body);
+    line-height: 1.65;
+    color: var(--pvs-body);
+    margin: 0 !important;
+    margin-block: 0 !important;
+    flex-shrink: 0;
+  }
+  .pvs-card-body-before-{{ section.id }} { opacity: 0.72; }
+
+  /* Handle — NO left/right !important here so JS can control position */
+  #pvs-{{ section.id }} .pvs-handle-{{ section.id }} {
+    position: absolute !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    z-index: 30;
+    left: 50%;
+    width: 2px;
+    background: var(--pvs-handle);
+    pointer-events: none;
+  }
+  .pvs-pill-{{ section.id }} {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px; height: 52px;
+    background: #fff;
+    border-radius: 999px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.22);
+  }
+  .pvs-pill-{{ section.id }}::before,
+  .pvs-pill-{{ section.id }}::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+  }
+  .pvs-pill-{{ section.id }}::before {
+    right: calc(100% + 7px);
+    border-right: 7px solid #fff;
+    transform: translateY(-50%);
+  }
+  .pvs-pill-{{ section.id }}::after {
+    left: calc(100% + 7px);
+    border-left: 7px solid #fff;
+    transform: translateY(-50%);
+  }
+
+  /* CTA — white pill button, Horizon-compatible */
+  .pvs-footer-{{ section.id }} {
+    margin-top: {{ sec.cta_margin_top | default: 64 }}px;
+    display: flex;
+    justify-content: center;
+  }
+  #pvs-{{ section.id }} .pvs-cta-btn-{{ section.id }},
+  #pvs-{{ section.id }} .pvs-cta-btn-{{ section.id }}:link,
+  #pvs-{{ section.id }} .pvs-cta-btn-{{ section.id }}:visited {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 18px 48px !important;
+    background: #ffffff !important;
+    color: #1A1A1A !important;
+    border: 1px solid rgba(0,0,0,0.12) !important;
+    border-radius: 999px !important;
+    font-family: var(--pvs-ff-sans) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.2em !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.2s !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+  }
+  #pvs-{{ section.id }} .pvs-cta-btn-{{ section.id }}:hover {
+    transform: scale(1.03) !important;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.13) !important;
+    background: #fafafa !important;
+  }
+</style>
+
+<section id="pvs-{{ section.id }}">
+  <div class="pvs-inner-{{ section.id }}">
+
+    {%- if sec.show_header -%}
+    <header class="pvs-header-{{ section.id }}">
+      {%- unless sec.headline == blank -%}
+        <{{ sec.headline_tag | default: 'h2' }} class="pvs-title-{{ section.id }}">
+          {{ sec.headline }}
+        </{{ sec.headline_tag | default: 'h2' }}>
+      {%- endunless -%}
+      {%- unless sec.subheadline == blank -%}
+        <p class="pvs-sub-{{ section.id }}">{{ sec.subheadline }}</p>
+      {%- endunless -%}
+    </header>
+    {%- endif -%}
+
+    <div class="pvs-grid-{{ section.id }}">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'slide_card' -%}
+        <div class="pvs-card-{{ section.id }}" data-pvs="{{ section.id }}" {{ block.shopify_attributes }}>
+
+          <!-- AFTER (solution) — bottom layer, z-index 10 -->
+          <div class="pvs-after-{{ section.id }}">
+            <div class="pvs-after-inner-{{ section.id }}">
+              {%- if block.settings.after_image != blank -%}
+                <img class="pvs-img-{{ section.id }}"
+                  src="{{ block.settings.after_image | image_url: width: 800 }}"
+                  alt="{{ block.settings.after_image.alt | default: block.settings.after_heading }}"
+                  loading="lazy">
+              {%- else -%}
+                <div class="pvs-img-{{ section.id }}" style="background:#e0ebe9;display:flex;align-items:center;justify-content:center;color:#245C63;font-size:12px;border-radius:12px;">No image</div>
+              {%- endif -%}
+              <span class="pvs-label-{{ section.id }} pvs-label-sol-{{ section.id }}">{{ block.settings.after_label }}</span>
+              <h3 class="pvs-card-heading-{{ section.id }}">{{ block.settings.after_heading }}</h3>
+              <p class="pvs-card-body-{{ section.id }}">{{ block.settings.after_body }}</p>
+            </div>
+          </div>
+
+          <!-- BEFORE (problem) — top layer, z-index 20, clipped by JS -->
+          <div class="pvs-before-{{ section.id }}" data-pvs-before>
+            <div class="pvs-before-inner-{{ section.id }}">
+              {%- if block.settings.before_image != blank -%}
+                <img class="pvs-img-{{ section.id }} pvs-img-before-{{ section.id }}"
+                  src="{{ block.settings.before_image | image_url: width: 800 }}"
+                  alt="{{ block.settings.before_image.alt | default: block.settings.before_heading }}"
+                  loading="lazy">
+              {%- else -%}
+                <div class="pvs-img-{{ section.id }} pvs-img-before-{{ section.id }}" style="background:#ddd;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;border-radius:12px;">No image</div>
+              {%- endif -%}
+              <span class="pvs-label-{{ section.id }} pvs-label-prob-{{ section.id }}">{{ block.settings.before_label }}</span>
+              <h3 class="pvs-card-heading-{{ section.id }} pvs-card-heading-before-{{ section.id }}">{{ block.settings.before_heading }}</h3>
+              <p class="pvs-card-body-{{ section.id }} pvs-card-body-before-{{ section.id }}">{{ block.settings.before_body }}</p>
+            </div>
+          </div>
+
+          <!-- HANDLE -->
+          <div class="pvs-handle-{{ section.id }}" data-pvs-handle>
+            <div class="pvs-pill-{{ section.id }}"></div>
+          </div>
+
+        </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    {%- if sec.show_cta -%}
+    <div class="pvs-footer-{{ section.id }}">
+      <a href="{{ sec.cta_url | default: '/collections/all' }}" class="pvs-cta-btn-{{ section.id }}">
+        {{ sec.cta_label | default: 'Experience the difference' }}
+      </a>
+    </div>
+    {%- endif -%}
+
+  </div>
+</section>
+
+<script>
+(function () {
+  function initCard(card) {
+    var before = card.querySelector('[data-pvs-before]');
+    var handle = card.querySelector('[data-pvs-handle]');
+    if (!before || !handle) return;
+    var dragging = false;
+
+    function setPos(clientX) {
+      var r     = card.getBoundingClientRect();
+      var p     = Math.min(Math.max((clientX - r.left) / r.width, 0.04), 0.96);
+      var pct   = (p * 100).toFixed(2);
+      var right = (100 - p * 100).toFixed(2);
+      before.style.clipPath = 'inset(0 ' + right + '% 0 0)';
+      handle.style.setProperty('left', pct + '%', 'important');
+    }
+
+    card.addEventListener('mousedown',  function(e) { dragging = true; setPos(e.clientX); e.preventDefault(); });
+    window.addEventListener('mousemove',function(e) { if (dragging) setPos(e.clientX); });
+    window.addEventListener('mouseup',  function()  { dragging = false; });
+    card.addEventListener('touchstart', function(e) { dragging = true; setPos(e.touches[0].clientX); }, { passive: true });
+    window.addEventListener('touchmove',function(e) { if (dragging) setPos(e.touches[0].clientX); }, { passive: true });
+    window.addEventListener('touchend', function()  { dragging = false; });
+  }
+
+  function initAll() {
+    document.querySelectorAll('[data-pvs="{{ section.id }}"]').forEach(initCard);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAll);
+  } else {
+    initAll();
+  }
+  if (window.Shopify && window.Shopify.designMode) {
+    document.addEventListener('shopify:section:load', function(e) {
+      if (e.detail && e.detail.sectionId === '{{ section.id }}') initAll();
+    });
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Before After Slider",
+  "tag": "section",
+  "class": "stavery-pvs-section",
+  "max_blocks": 3,
+  "settings": [
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 160, "step": 8, "default": 96, "unit": "px", "label": "Padding top" },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 160, "step": 8, "default": 96, "unit": "px", "label": "Padding bottom" },
+    { "type": "range", "id": "max_width", "min": 800, "max": 1600, "step": 50, "default": 1400, "unit": "px", "label": "Max section width" },
+    { "type": "range", "id": "section_side_padding", "min": 8, "max": 48, "step": 4, "default": 24, "unit": "px", "label": "Side padding (mobile)" },
+    { "type": "range", "id": "section_side_padding_desktop", "min": 16, "max": 120, "step": 8, "default": 48, "unit": "px", "label": "Side padding (desktop)" },
+    { "type": "select", "id": "columns", "label": "Columns (desktop)", "options": [{ "value": "1", "label": "1" }, { "value": "2", "label": "2" }, { "value": "3", "label": "3" }], "default": "3" },
+    { "type": "range", "id": "card_gap", "min": 8, "max": 64, "step": 4, "default": 28, "unit": "px", "label": "Gap between cards" },
+
+    { "type": "header", "content": "Header text" },
+    { "type": "checkbox", "id": "show_header", "label": "Show header", "default": true },
+    { "type": "select", "id": "header_align", "label": "Alignment", "options": [{ "value": "left", "label": "Left" }, { "value": "center", "label": "Center" }, { "value": "right", "label": "Right" }], "default": "center" },
+    { "type": "select", "id": "headline_tag", "label": "Headline tag", "options": [{ "value": "h1", "label": "H1" }, { "value": "h2", "label": "H2" }, { "value": "h3", "label": "H3" }], "default": "h2" },
+    { "type": "text", "id": "headline", "label": "Headline", "default": "Your Morning Shouldn't Start With Guilt" },
+    { "type": "text", "id": "subheadline", "label": "Sub-headline", "default": "Slide to reveal the better way" },
+    { "type": "range", "id": "header_margin_bottom", "min": 16, "max": 120, "step": 8, "default": 64, "unit": "px", "label": "Space after header" },
+    { "type": "range", "id": "title_max_width", "min": 400, "max": 1200, "step": 50, "default": 800, "unit": "px", "label": "Headline max width" },
+
+    { "type": "header", "content": "Typography" },
+    { "type": "checkbox", "id": "use_theme_heading_font", "label": "Use theme heading font", "default": true },
+    { "type": "checkbox", "id": "use_theme_body_font", "label": "Use theme body font", "default": true },
+    { "type": "range", "id": "title_font_size", "min": 28, "max": 90, "step": 2, "default": 64, "unit": "px", "label": "Headline size (max)" },
+    { "type": "select", "id": "title_font_weight", "label": "Headline weight", "options": [{ "value": "300", "label": "Light" }, { "value": "400", "label": "Regular" }, { "value": "500", "label": "Medium" }, { "value": "600", "label": "Semibold" }, { "value": "700", "label": "Bold" }], "default": "500" },
+    { "type": "range", "id": "sub_font_size", "min": 8, "max": 16, "step": 1, "default": 11, "unit": "px", "label": "Sub-headline size" },
+    { "type": "range", "id": "card_label_size", "min": 8, "max": 14, "step": 1, "default": 10, "unit": "px", "label": "Card label size" },
+    { "type": "range", "id": "card_heading_size", "min": 16, "max": 42, "step": 1, "default": 26, "unit": "px", "label": "Card heading size" },
+    { "type": "select", "id": "card_heading_weight", "label": "Card heading weight", "options": [{ "value": "400", "label": "Regular" }, { "value": "500", "label": "Medium" }, { "value": "600", "label": "Semibold" }, { "value": "700", "label": "Bold" }], "default": "600" },
+    { "type": "range", "id": "card_body_size", "min": 11, "max": 18, "step": 1, "default": 13, "unit": "px", "label": "Card body text size" },
+
+    { "type": "header", "content": "Card dimensions" },
+    { "type": "range", "id": "card_height", "min": 400, "max": 800, "step": 20, "default": 560, "unit": "px", "label": "Card height" },
+    { "type": "range", "id": "image_height", "min": 120, "max": 400, "step": 10, "default": 260, "unit": "px", "label": "Image height" },
+    { "type": "range", "id": "image_margin_bottom", "min": 8, "max": 48, "step": 4, "default": 24, "unit": "px", "label": "Space below image" },
+    { "type": "range", "id": "card_padding", "min": 12, "max": 56, "step": 4, "default": 28, "unit": "px", "label": "Card inner padding" },
+    { "type": "range", "id": "card_radius", "min": 0, "max": 32, "step": 2, "default": 16, "unit": "px", "label": "Card corner radius" },
+
+    { "type": "header", "content": "Colours" },
+    { "type": "color", "id": "bg_color", "label": "Section background", "default": "#F7F3EE" },
+    { "type": "color", "id": "heading_color", "label": "Heading text", "default": "#1A1A1A" },
+    { "type": "color", "id": "body_color", "label": "Body / muted text", "default": "#666666" },
+    { "type": "color", "id": "label_solution_color", "label": "Solution label colour", "default": "#245C63" },
+    { "type": "color", "id": "label_problem_color", "label": "Problem label colour", "default": "#999999" },
+    { "type": "color", "id": "before_bg_color", "label": "Problem card background", "default": "#E5E0D8" },
+    { "type": "color", "id": "after_bg_color", "label": "Solution card background", "default": "#F7F3EE" },
+    { "type": "range", "id": "before_grayscale", "min": 0, "max": 100, "step": 5, "default": 25, "unit": "%", "label": "Before image desaturation" },
+    { "type": "text", "id": "before_overlay_opacity", "label": "Before overlay opacity (0-1)", "default": "0.35" },
+    { "type": "text", "id": "before_image_opacity", "label": "Before image opacity (0-1)", "default": "0.82" },
+    { "type": "color", "id": "handle_color", "label": "Slider handle colour", "default": "#FFFFFF" },
+
+    { "type": "header", "content": "CTA Button" },
+    { "type": "checkbox", "id": "show_cta", "label": "Show CTA button", "default": true },
+    { "type": "text", "id": "cta_label", "label": "Button text", "default": "Experience the difference" },
+    { "type": "url", "id": "cta_url", "label": "Button link" },
+    { "type": "range", "id": "cta_margin_top", "min": 16, "max": 120, "step": 8, "default": 64, "unit": "px", "label": "Space above button" }
+  ],
+
+  "blocks": [
+    {
+      "type": "slide_card",
+      "name": "Slide Card",
+      "settings": [
+        { "type": "header", "content": "Solution (After)" },
+        { "type": "image_picker", "id": "after_image", "label": "Solution image" },
+        { "type": "text", "id": "after_label", "label": "Label", "default": "The Solution" },
+        { "type": "text", "id": "after_heading", "label": "Heading", "default": "Ready in seconds" },
+        { "type": "textarea", "id": "after_body", "label": "Body text", "default": "Simply grab, stir, and enjoy. Chef-crafted nutrition that fits your pace." },
+        { "type": "header", "content": "Problem (Before)" },
+        { "type": "image_picker", "id": "before_image", "label": "Problem image" },
+        { "type": "text", "id": "before_label", "label": "Label", "default": "The Problem" },
+        { "type": "text", "id": "before_heading", "label": "Heading", "default": "No time to cook" },
+        { "type": "textarea", "id": "before_body", "label": "Body text", "default": "A chaotic rush that leaves you skipping the most important meal." }
+      ]
+    }
+  ],
+
+  "presets": [
+    {
+      "name": "Before After Slider",
+      "blocks": [
+        { "type": "slide_card", "settings": { "after_label": "The Solution", "after_heading": "Ready in seconds", "after_body": "Simply grab, stir, and enjoy. Chef-crafted nutrition that fits your pace.", "before_label": "The Problem", "before_heading": "No time to cook", "before_body": "A chaotic rush that leaves you skipping the most important meal." } },
+        { "type": "slide_card", "settings": { "after_label": "The Solution", "after_heading": "Clean Label", "after_body": "Sweetened by nature. Zero refined sugars, zero artificial fillers.", "before_label": "The Problem", "before_heading": "Hidden sugars everywhere", "before_body": "Your \"healthy\" granola is often just a dessert in disguise." } },
+        { "type": "slide_card", "settings": { "after_label": "The Solution", "after_heading": "Sustained Power", "after_body": "Complex carbs and protein for energy that lasts until dinner.", "before_label": "The Problem", "before_heading": "Energy crash by noon", "before_body": "The inevitable sugar slump that leaves you reaching for a third coffee." } }
+      ]
+    }
+  ]
+}
+{% endschema %}
