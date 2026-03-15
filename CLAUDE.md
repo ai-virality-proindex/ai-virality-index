@@ -28,8 +28,8 @@ Full spec: docs/TECHNICAL_SPEC.md
 
 ## Index Formula
 - Components: T(Trends), S(Social), G(GitHub), N(News), D(Dev Adoption), M(Mindshare)
-- Trading: 0.18*T + 0.28*S + 0.15*G + 0.12*N + 0.15*D + 0.12*M
-- Content: 0.25*T + 0.35*S + 0.05*G + 0.20*N + 0.05*D + 0.10*M
+- Trading: 0.18*T + 0.20*S + 0.12*G + 0.15*N + 0.20*D + 0.15*M
+- Content: 0.25*T + 0.25*S + 0.05*G + 0.25*N + 0.05*D + 0.15*M
 - D = npm + PyPI daily SDK downloads (replaced Q/Arena Elo which was static)
 - M = Wikipedia pageviews (replaced Polymarket which had no relevant markets)
 - Normalization: Rolling quantile q05/q95 + Winsorize + EWMA

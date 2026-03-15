@@ -2,14 +2,16 @@
 Signal Detector for AI Virality Index.
 
 Detects trading signals based on divergence between virality index
-components, momentum breakouts, and adoption-backed trends.
+components, momentum breakouts, mean-reversion opportunities, and
+trend momentum for non-SDK models.
 
 Spec reference: TECHNICAL_SPEC.md section 2.7
 
 Signal types:
     1. divergence — VI_trade momentum diverges from D (Dev Adoption) momentum
     2. momentum_breakout — strong virality spike not backed by adoption growth
-    3. adoption_backed — rising virality supported by dev adoption + GitHub activity
+    3. mean_reversion — VI dropped but fundamentals remain strong (likely bounce)
+    4. trend_momentum — momentum in non-SDK models using T+S+N components
 """
 
 import logging
@@ -165,8 +167,12 @@ def detect_momentum_breakout(
     Detect momentum breakout: strong virality not yet backed by adoption growth.
 
     Uses adaptive thresholds based on available data:
-    - With 7+ days of data: VI > 65, delta7 > 10
-    - Full thresholds (14+ days): VI > 70, delta7 > 15
+    - With 14+ days: VI > 55, delta7 > 8
+    - With 7+ days: VI > 50, delta7 > 5
+    - With < 7 days: VI > 45, delta7 > 3
+
+    Acceleration requirement removed (was too restrictive, prevented
+    all signals from firing in 28-day validation).
 
     If Dev Adoption (D) hasn't grown proportionally, the breakout is
     hype-driven and may present a trading opportunity.
@@ -186,19 +192,18 @@ def detect_momentum_breakout(
     latest = daily_rows[-1]
     vi_trade = float(latest["vi_trade"])
     delta7 = float(latest.get("delta7_trade") or 0)
-    accel = float(latest.get("accel_trade") or 0)
 
     # Adaptive thresholds: stricter with more history
     days_available = len(daily_rows)
     if days_available >= 14:
-        vi_threshold, delta_threshold = 70, 15
+        vi_threshold, delta_threshold = 55, 8
     elif days_available >= 7:
-        vi_threshold, delta_threshold = 65, 10
+        vi_threshold, delta_threshold = 50, 5
     else:
-        vi_threshold, delta_threshold = 60, 5
+        vi_threshold, delta_threshold = 45, 3
 
-    # Check VI conditions
-    if vi_trade <= vi_threshold or delta7 <= delta_threshold or accel <= 0:
+    # Check VI conditions (accel requirement removed)
+    if vi_trade <= vi_threshold or delta7 <= delta_threshold:
         return None
 
     # Check D (Dev Adoption) movement — did adoption confirm the hype?
@@ -226,23 +231,29 @@ def detect_momentum_breakout(
         "divergence_score": round(delta7, 3),
         "reasoning": (
             f"VI_trade={vi_trade:.1f}>{vi_threshold}, delta7={delta7:+.1f}>{delta_threshold}, "
-            f"accel={accel:+.1f}>0, but DevAdoption grew only {d_grew_pct:+.1f}%."
+            f"but DevAdoption grew only {d_grew_pct:+.1f}%."
         ),
         "expires_at": (calc_date + timedelta(days=5)).isoformat(),
     }
 
 
-def detect_adoption_backed(
+def detect_mean_reversion(
     model_id: str,
     calc_date: date,
 ) -> dict[str, Any] | None:
     """
-    Detect adoption-backed virality: rising VI supported by dev adoption + GitHub.
+    Detect mean-reversion opportunity: VI dropped significantly but
+    fundamentals (D, G) remain strong.
 
     Conditions:
-        - VI_trade growing (delta7 > 0)
-        - D component (Dev Adoption) > threshold
-        - G component growing (GitHub delta positive)
+    - delta7 < -5 (VI declining)
+    - D component > 40 (still has real adoption)
+    - direction: "bullish" (oversold, likely to recover)
+
+    For non-SDK models (D=0): use T+N threshold instead
+    - delta7 < -5
+    - T > 30 OR N > 40 (still has search/news presence)
+    - direction: "bullish"
 
     Args:
         model_id: UUID of the model.
@@ -260,55 +271,202 @@ def detect_adoption_backed(
     vi_trade = float(latest["vi_trade"])
     delta7 = float(latest.get("delta7_trade") or 0)
 
-    # Must be growing
-    if delta7 <= 0:
+    # Must be declining
+    if delta7 >= -5:
         return None
-
-    # Adaptive D threshold: lower in early stage (< 7 days)
-    days_available = len(daily_rows)
-    d_threshold = 65 if days_available >= 7 else 50
 
     # Check D component (Dev Adoption — npm + PyPI downloads)
     d_score = _get_component_score(model_id, "D", calc_date)
-    if d_score is None or d_score <= d_threshold:
-        return None
 
-    # Check G component growing
-    g_score = _get_component_score(model_id, "G", calc_date)
-    if g_score is None:
-        return None
+    if d_score is not None and d_score > 40:
+        # SDK model with strong adoption fundamentals
+        strength = round(min(100, abs(delta7) * 3 + d_score * 0.3), 2)
+        reasoning = (
+            f"VI_trade declining (d7={delta7:+.1f}), but DevAdoption D={d_score:.1f}>40. "
+            f"Mean reversion likely — fundamentals remain strong."
+        )
+    else:
+        # Non-SDK model or D<=40: use T+N threshold
+        t_score = _get_component_score(model_id, "T", calc_date)
+        n_score = _get_component_score(model_id, "N", calc_date)
 
-    # Check if G was growing: compare with 7 days ago
-    prev_date = calc_date - timedelta(days=7)
-    g_prev = _get_component_score(model_id, "G", prev_date)
+        t_val = t_score if t_score is not None else 0
+        n_val = n_score if n_score is not None else 0
 
-    if g_prev is not None and g_score <= g_prev:
-        return None  # G not growing
+        if t_val <= 30 and n_val <= 40:
+            return None  # No fundamental support
+
+        best_score = max(t_val, n_val)
+        strength = round(min(100, abs(delta7) * 3 + best_score * 0.3), 2)
+        reasoning = (
+            f"VI_trade declining (d7={delta7:+.1f}), no SDK data but "
+            f"T={t_val:.1f}, N={n_val:.1f} show continued presence. "
+            f"Mean reversion likely."
+        )
 
     return {
         "model_id": model_id,
         "date": calc_date.isoformat(),
-        "signal_type": "adoption_backed",
+        "signal_type": "mean_reversion",
         "direction": "bullish",
-        "strength": round(min(100, d_score * 0.6 + delta7 * 2), 2),
+        "strength": strength,
         "vi_trade": vi_trade,
         "polymarket_odds": 0,  # legacy field kept for DB schema compat
         "divergence_score": 0,
-        "reasoning": (
-            f"VI_trade growing (d7={delta7:+.1f}), DevAdoption D={d_score:.1f}>{d_threshold}, "
-            f"GitHub G={g_score:.1f} trending up. Fundamentally supported."
-        ),
+        "reasoning": reasoning,
         "expires_at": (calc_date + timedelta(days=7)).isoformat(),
     }
 
 
 # Backward-compatible alias
-detect_quality_backed = detect_adoption_backed
+detect_quality_backed = detect_mean_reversion
+
+
+def detect_trend_momentum(
+    model_id: str,
+    calc_date: date,
+) -> dict[str, Any] | None:
+    """
+    Detect momentum in non-adoption models using T+S+N components.
+    Targets: Copilot, Grok, Perplexity (D=0 models).
+
+    Bullish: T growing AND (N > 40 OR S > 30), delta7 > 3
+    Bearish: T declining AND N < 20 AND S < 20, delta7 < -3
+
+    For models with D > 0, this signal is skipped (they have better
+    signals via divergence and mean_reversion).
+
+    Args:
+        model_id: UUID of the model.
+        calc_date: Date to check.
+
+    Returns:
+        Signal dict or None if not detected.
+    """
+    # Get latest daily_scores
+    daily_rows = _get_daily_scores_series(model_id, days=14)
+    if not daily_rows:
+        return None
+
+    latest = daily_rows[-1]
+    vi_trade = float(latest["vi_trade"])
+    delta7 = float(latest.get("delta7_trade") or 0)
+
+    # Skip models that have D > 0 (they use divergence/mean_reversion)
+    d_score = _get_component_score(model_id, "D", calc_date)
+    if d_score is not None and d_score > 0:
+        return None
+
+    # Get T, S, N components
+    t_score = _get_component_score(model_id, "T", calc_date)
+    s_score = _get_component_score(model_id, "S", calc_date)
+    n_score = _get_component_score(model_id, "N", calc_date)
+
+    t_val = t_score if t_score is not None else 0
+    s_val = s_score if s_score is not None else 0
+    n_val = n_score if n_score is not None else 0
+
+    # Check T trend: compare with 7 days ago
+    t_prev = _get_component_score(model_id, "T", calc_date - timedelta(days=7))
+    t_prev_val = t_prev if t_prev is not None else t_val
+    t_growing = t_val > t_prev_val
+    t_declining = t_val < t_prev_val
+
+    # Bullish conditions
+    if delta7 > 3 and t_growing and (n_val > 40 or s_val > 30):
+        best_component = max(t_val, s_val, n_val)
+        strength = round(min(100, delta7 * 4 + best_component * 0.3), 2)
+        return {
+            "model_id": model_id,
+            "date": calc_date.isoformat(),
+            "signal_type": "trend_momentum",
+            "direction": "bullish",
+            "strength": strength,
+            "vi_trade": vi_trade,
+            "polymarket_odds": 0,
+            "divergence_score": 0,
+            "reasoning": (
+                f"Non-SDK model trending up (d7={delta7:+.1f}). "
+                f"T={t_val:.1f} growing, S={s_val:.1f}, N={n_val:.1f}. "
+                f"Momentum supported by search/social/news presence."
+            ),
+            "expires_at": (calc_date + timedelta(days=5)).isoformat(),
+        }
+
+    # Bearish conditions
+    if delta7 < -3 and t_declining and n_val < 20 and s_val < 20:
+        strength = round(min(100, abs(delta7) * 4 + (40 - max(t_val, s_val, n_val)) * 0.5), 2)
+        return {
+            "model_id": model_id,
+            "date": calc_date.isoformat(),
+            "signal_type": "trend_momentum",
+            "direction": "bearish",
+            "strength": strength,
+            "vi_trade": vi_trade,
+            "polymarket_odds": 0,
+            "divergence_score": 0,
+            "reasoning": (
+                f"Non-SDK model declining (d7={delta7:+.1f}). "
+                f"T={t_val:.1f} declining, S={s_val:.1f}<20, N={n_val:.1f}<20. "
+                f"No component support — continued decline likely."
+            ),
+            "expires_at": (calc_date + timedelta(days=5)).isoformat(),
+        }
+
+    return None
+
+
+def _resolve_signal_conflicts(
+    signals: list[dict[str, Any]],
+    model_slug: str,
+) -> list[dict[str, Any]]:
+    """
+    Resolve contradictory signals for the same model on the same date.
+
+    If both bullish and bearish signals exist, keep only the one with
+    higher strength. Log the conflict.
+
+    Args:
+        signals: List of signals for a single model on a single date.
+        model_slug: Model slug for logging.
+
+    Returns:
+        Filtered list of signals with conflicts resolved.
+    """
+    if len(signals) <= 1:
+        return signals
+
+    bullish = [s for s in signals if s["direction"] == "bullish"]
+    bearish = [s for s in signals if s["direction"] == "bearish"]
+
+    if not bullish or not bearish:
+        return signals  # No conflict
+
+    best_bullish = max(bullish, key=lambda s: s["strength"])
+    best_bearish = max(bearish, key=lambda s: s["strength"])
+
+    logger.warning(
+        f"  {model_slug}: CONFLICT — bullish ({best_bullish['signal_type']}, "
+        f"str={best_bullish['strength']}) vs bearish ({best_bearish['signal_type']}, "
+        f"str={best_bearish['strength']})"
+    )
+
+    if best_bullish["strength"] >= best_bearish["strength"]:
+        winner_direction = "bullish"
+        logger.info(f"  {model_slug}: Resolved conflict -> bullish wins")
+    else:
+        winner_direction = "bearish"
+        logger.info(f"  {model_slug}: Resolved conflict -> bearish wins")
+
+    return [s for s in signals if s["direction"] == winner_direction]
 
 
 def run_signal_detection(calc_date: date) -> list[dict[str, Any]]:
     """
     Run all signal detectors for all models, write to signals table.
+
+    After collecting signals per model, resolves contradictions
+    (bullish vs bearish) by keeping only the stronger direction.
 
     Args:
         calc_date: Date to run detection for.
@@ -322,7 +480,8 @@ def run_signal_detection(calc_date: date) -> list[dict[str, Any]]:
     detectors = [
         detect_divergence,
         detect_momentum_breakout,
-        detect_adoption_backed,
+        detect_mean_reversion,
+        detect_trend_momentum,
     ]
 
     all_signals: list[dict[str, Any]] = []
@@ -331,27 +490,39 @@ def run_signal_detection(calc_date: date) -> list[dict[str, Any]]:
         model_id = model["id"]
         slug = model["slug"]
 
+        model_signals: list[dict[str, Any]] = []
+
         for detector in detectors:
             try:
                 signal = detector(model_id, calc_date)
                 if signal is not None:
-                    all_signals.append(signal)
-
-                    # Upsert to signals table
-                    client.table("signals").upsert(
-                        signal,
-                        on_conflict="model_id,date,signal_type",
-                    ).execute()
-
-                    logger.info(
-                        f"  {slug}: {signal['signal_type']} "
-                        f"({signal['direction']}, strength={signal['strength']})"
-                    )
-
+                    model_signals.append(signal)
             except Exception as e:
                 logger.error(
                     f"  {slug}: {detector.__name__} failed — {e}"
                 )
+
+        # Resolve conflicts before writing
+        model_signals = _resolve_signal_conflicts(model_signals, slug)
+
+        for signal in model_signals:
+            try:
+                # Upsert to signals table
+                client.table("signals").upsert(
+                    signal,
+                    on_conflict="model_id,date,signal_type",
+                ).execute()
+
+                logger.info(
+                    f"  {slug}: {signal['signal_type']} "
+                    f"({signal['direction']}, strength={signal['strength']})"
+                )
+            except Exception as e:
+                logger.error(
+                    f"  {slug}: upsert {signal['signal_type']} failed — {e}"
+                )
+
+        all_signals.extend(model_signals)
 
     logger.info(
         f"Signal detection complete: {len(all_signals)} signals detected "

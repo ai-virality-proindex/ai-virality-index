@@ -139,16 +139,16 @@ Public chart line: 7-day moving average (visually clearer).
 #### Mode 1: Trading Index
 
 ```
-VI_trade(m,t) = 0.18*T + 0.28*S + 0.15*G + 0.12*N + 0.15*D + 0.12*M
+VI_trade(m,t) = 0.18*T + 0.20*S + 0.12*G + 0.15*N + 0.20*D + 0.15*M
 ```
 
-Weight rationale:
-- T (0.18): search demand as early signal
-- S (0.28): social spread speed
-- G (0.15): developer adoption confirms trend stickiness
-- N (0.12): news/PR catalysts
-- D (0.15): dev adoption anchor (npm + PyPI SDK downloads)
-- M (0.12): mindshare (Wikipedia pageviews)
+Weight rationale (calibrated 2026-03-15 from 28-day validation):
+- T (0.18): search demand as early signal — moderate volatility, good signal
+- S (0.20): social spread speed — reduced from 0.28: too volatile for its weight
+- G (0.12): developer adoption — reduced from 0.15: correlated with D (+0.50)
+- N (0.15): news/PR catalysts — increased from 0.12: best leading indicator (1-2d lead)
+- D (0.20): dev adoption anchor (npm + PyPI downloads) — increased from 0.15: most stable & reliable
+- M (0.15): mindshare (Wikipedia pageviews) — increased from 0.12: broader coverage
 
 **Trading Signal** (composite with momentum):
 
@@ -164,16 +164,16 @@ All three sub-components normalized to 0-100.
 #### Mode 2: Content/Marketing Index
 
 ```
-VI_content(m,t) = 0.25*T + 0.35*S + 0.05*G + 0.20*N + 0.05*D + 0.10*M
+VI_content(m,t) = 0.25*T + 0.25*S + 0.05*G + 0.25*N + 0.05*D + 0.15*M
 ```
 
-Weight rationale:
+Weight rationale (calibrated 2026-03-15 from 28-day validation):
 - T (0.25): search demand = audience looking for explanations/guides
-- S (0.35): video/social = real content virality
+- S (0.25): video/social — reduced from 0.35: was too dominant
 - G (0.05): developers matter less for content
-- N (0.20): news events = content hooks
-- D (0.05): dev adoption as filter, not driver
-- M (0.10): mindshare (Wikipedia pageviews) as minor boost
+- N (0.25): news events = content hooks — increased from 0.20: best content predictor
+- D (0.05): dev adoption as filter, not driver — less relevant for content
+- M (0.15): mindshare (Wikipedia pageviews) — increased from 0.10: captures public interest
 
 **Topic Heat:**
 

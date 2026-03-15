@@ -42,21 +42,21 @@ MODELS_CONFIG_PATH = Path(__file__).parent / "models_config.yaml"
 # Q (Arena Elo) removed from formula — static data, measures quality not virality.
 # Replaced with D (Dev Adoption) = npm + PyPI daily SDK downloads.
 WEIGHTS_TRADE = {
-    "T": 0.18,  # Trends (search interest)
-    "S": 0.28,  # Social (YouTube + HackerNews)
-    "G": 0.15,  # GitHub (star/fork velocity)
-    "N": 0.12,  # News (GDELT mentions)
-    "D": 0.15,  # Dev Adoption (npm + PyPI downloads)
-    "M": 0.12,  # Mindshare (Wikipedia pageviews)
+    "T": 0.18,  # Trends (search interest) — moderate volatility, good signal
+    "S": 0.20,  # Social (YouTube + HackerNews) — reduced: too volatile for higher weight
+    "G": 0.12,  # GitHub (star/fork velocity) — reduced: correlated with D (+0.50)
+    "N": 0.15,  # News (GDELT mentions) — increased: best leading indicator (1-2d lead)
+    "D": 0.20,  # Dev Adoption (npm + PyPI downloads) — increased: most stable & reliable
+    "M": 0.15,  # Mindshare (Wikipedia pageviews) — increased: broader coverage
 }
 
 WEIGHTS_CONTENT = {
-    "T": 0.25,  # Trends
-    "S": 0.35,  # Social (YouTube + HackerNews)
-    "G": 0.05,  # GitHub
-    "N": 0.20,  # News
-    "D": 0.05,  # Dev Adoption (npm + PyPI downloads)
-    "M": 0.10,  # Mindshare (Wikipedia pageviews)
+    "T": 0.25,  # Trends — search demand = audience looking for guides
+    "S": 0.25,  # Social (YouTube + HackerNews) — reduced: was too dominant
+    "G": 0.05,  # GitHub — developers matter less for content
+    "N": 0.25,  # News — increased: best content predictor & content hooks
+    "D": 0.05,  # Dev Adoption (npm + PyPI downloads) — less relevant for content
+    "M": 0.15,  # Mindshare (Wikipedia pageviews) — increased: captures public interest
 }
 
 # --- EWMA Smoothing ---

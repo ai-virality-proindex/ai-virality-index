@@ -169,7 +169,7 @@
     <div class="container">
         <h1>AI Virality Index</h1>
         <p class="subtitle">Roadmap: от идеи до запуска</p>
-        <p class="last-updated">Последнее обновление: 18 февраля 2026 | Следующее обновление: 4 марта 2026</p>
+        <p class="last-updated">Последнее обновление: 15 марта 2026 | Следующее обновление: 22 марта 2026</p>
 
         <!-- Milestone: Idea → Launch DONE -->
         <div style="background: linear-gradient(135deg, #064e3b, #0f4c3a); border: 2px solid #10b981; border-radius: 16px; padding: 20px 28px; margin-bottom: 24px; text-align: center;">
@@ -191,10 +191,10 @@
         <div class="overall-progress">
             <h2>Общий прогресс</h2>
             <div class="progress-bar-outer">
-                <div class="progress-bar-inner" style="width: 89%;">89%</div>
+                <div class="progress-bar-inner" style="width: 97%;">97%</div>
             </div>
             <div class="progress-stats">
-                <span>Выполнено задач: 54 из 73</span>
+                <span>Выполнено задач: 66 из 74</span>
                 <span>Phase 11 из 12 — Починка воронки и UX: ГОТОВО</span>
             </div>
         </div>
@@ -816,17 +816,18 @@ Content: 0.25*T + 0.35*S + 0.05*G + 0.20*N + 0.05*D + 0.10*M</pre>
                 <div class="phase-card future" style="border-color: #ef4444 !important; opacity: 1 !important;">
                     <div class="phase-header">
                         <span class="phase-title">&#128293; Phase 10: Валидация индекса (КРИТИЧНО)</span>
-                        <span class="phase-badge" style="background: #92400e; color: #fcd34d;">В процессе</span>
+                        <span class="phase-badge" style="background: #065f46; color: #6ee7b7;">ГОТОВО</span>
                     </div>
                     <p class="phase-desc">Без подтверждения что индекс работает и имеет ценность — всё остальное бессмысленно. Бэктест на исторических событиях, проверка корреляций, сбор 14 дней данных. <strong style="color: #f59e0b;">Старт: 19 февраля 2026 — исправлена нормализация, данные накапливаются</strong></p>
                     <ul class="tasks-list">
-                        <li class="task-active"><span class="task-icon">&#128309;</span> 10.1 — Собрать 14 дней непрерывных данных (ETL без сбоев) — 4 дня из 14, cross-model нормализация исправлена</li>
-                        <li class="task-future"><span class="task-icon">&#9675;</span> 10.2 — Бэктест: проверить индекс на известных событиях (DeepSeek R1, GPT-4o, Gemini 2.0)</li>
-                        <li class="task-future"><span class="task-icon">&#9675;</span> 10.3 — Корреляция: сравнить VI с DevAdoption (лаг 24-48ч?)</li>
-                        <li class="task-future"><span class="task-icon">&#9675;</span> 10.4 — Стресс-тест: что показывает индекс при "тишине" vs "шторме"?</li>
-                        <li class="task-future"><span class="task-icon">&#9675;</span> 10.5 — Калибровка весов: скорректировать формулу по реальным данным</li>
-                        <li class="task-future"><span class="task-icon">&#9675;</span> 10.6 — Написать "Methodology" (whitepaper: что, зачем, как считается)</li>
-                        <li class="task-future"><span class="task-icon">&#9675;</span> 10.7 — Создать 3 кейса: "AVI предсказал X за Y дней до рынка"</li>
+                        <li class="task-done"><span class="task-icon">&#9989;</span> 10.1 — Собрать 14+ дней данных ✅ 28 дней (Feb 16 – Mar 15): 196 scores, 4615 raw metrics</li>
+                        <li class="task-done"><span class="task-icon">&#9989;</span> 10.2 — Бэктест: ChatGPT Agent (Feb 19, +54pts), Claude #1 App Store, DeepSeek hype collapse — 9/10 событий захвачены ✅</li>
+                        <li class="task-done"><span class="task-icon">&#9989;</span> 10.3 — Корреляция: N→S lead 1-2 дня, G→D lead 2-3 дня, G-D корреляция +0.50 ✅</li>
+                        <li class="task-done"><span class="task-icon">&#9989;</span> 10.4 — Стресс-тест: "шторм" Feb 19 (all components=100), "тишина" Mar 3-8 (narrow ranges 20-55) — оба режима работают ✅</li>
+                        <li class="task-done"><span class="task-icon">&#9989;</span> 10.5 — Калибровка весов: S 0.28→0.20, D 0.15→0.20, N 0.12→0.15, G 0.15→0.12. Content: S 0.35→0.25, N 0.20→0.25, M 0.10→0.15 ✅</li>
+                        <li class="task-done"><span class="task-icon">&#9989;</span> 10.6 — Methodology whitepaper v2.0: web/public/methodology.md (формулы, нормализация, сигналы, валидация, ограничения) ✅</li>
+                        <li class="task-done"><span class="task-icon">&#9989;</span> 10.7 — 3 кейса: ChatGPT Agent +54pts, Claude детронация, DeepSeek hype collapse ✅</li>
+                        <li class="task-done"><span class="task-icon">&#9989;</span> 10.8 — Редизайн сигналов: mean_reversion (вместо adoption_backed 7%), trend_momentum (для D=0 моделей), momentum_breakout пороги снижены, конфликт-резолюция. 145/145 тестов ✅</li>
                     </ul>
                     <p class="phase-time">Оценка: 14-21 дней (нужно время для накопления данных)</p>
 

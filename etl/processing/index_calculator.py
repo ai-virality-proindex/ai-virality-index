@@ -14,9 +14,9 @@ Component mapping:
     D: source='devadoption', 'downloads_daily' (was Q: arena/elo_rating)
     M: source='wikipedia',   'pageviews_7d'
 
-Weights:
-    Trading: 0.18*T + 0.28*S + 0.15*G + 0.12*N + 0.15*D + 0.12*M
-    Content: 0.25*T + 0.35*S + 0.05*G + 0.20*N + 0.05*D + 0.10*M
+Weights (calibrated 2026-03-15 from 28-day validation):
+    Trading: 0.18*T + 0.20*S + 0.12*G + 0.15*N + 0.20*D + 0.15*M
+    Content: 0.25*T + 0.25*S + 0.05*G + 0.25*N + 0.05*D + 0.15*M
 """
 
 import logging

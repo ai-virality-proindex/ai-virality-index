@@ -38,12 +38,12 @@ class TestWeightConfiguration(unittest.TestCase):
         self.assertAlmostEqual(total, 1.0, places=9)
 
     def test_trade_weights_match_spec(self):
-        expected = {"T": 0.18, "S": 0.28, "G": 0.15, "N": 0.12, "D": 0.15, "M": 0.12}
+        expected = {"T": 0.18, "S": 0.20, "G": 0.12, "N": 0.15, "D": 0.20, "M": 0.15}
         for k, v in expected.items():
             self.assertAlmostEqual(WEIGHTS_TRADE[k], v, places=9, msg=f"Weight {k}")
 
     def test_content_weights_match_spec(self):
-        expected = {"T": 0.25, "S": 0.35, "G": 0.05, "N": 0.20, "D": 0.05, "M": 0.10}
+        expected = {"T": 0.25, "S": 0.25, "G": 0.05, "N": 0.25, "D": 0.05, "M": 0.15}
         for k, v in expected.items():
             self.assertAlmostEqual(WEIGHTS_CONTENT[k], v, places=9, msg=f"Weight {k}")
 
