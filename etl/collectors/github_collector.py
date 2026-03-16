@@ -179,9 +179,9 @@ class GitHubCollector(BaseCollector):
             if model_id:
                 previous = self._get_previous_metrics(model_id)
                 if "total_stars" in previous:
-                    stars_delta = total_stars - previous["total_stars"]
+                    stars_delta = max(0, total_stars - previous["total_stars"])
                 if "total_forks" in previous:
-                    forks_delta = total_forks - previous["total_forks"]
+                    forks_delta = max(0, total_forks - previous["total_forks"])
         except Exception as e:
             self.logger.warning(f"Could not compute deltas for {model_slug}: {e}")
 

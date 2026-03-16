@@ -68,6 +68,35 @@ QUANTILE_WINDOW = 90  # days
 QUANTILE_LOW = 0.05
 QUANTILE_HIGH = 0.95
 
+# --- D Component Minimum Threshold ---
+# DeepSeek raw D = 0-169 downloads but quantile normalization stretched it to 80/100.
+# Any model with raw downloads < this threshold gets D=0 to prevent false scores.
+D_RAW_MIN_THRESHOLD = 1000  # daily downloads
+
+# --- Weight Redistribution for Non-SDK Models ---
+# Models without SDK packages (Copilot, Grok, Perplexity) have D=0 permanently.
+# Instead of penalizing them with 20% dead weight, redistribute D weight
+# proportionally across remaining components.
+def get_weights_for_model(mode: str, has_sdk: bool) -> dict[str, float]:
+    """Return weight dict, redistributing D weight if model has no SDK packages."""
+    base = WEIGHTS_TRADE if mode == "trade" else WEIGHTS_CONTENT
+    if has_sdk:
+        return base
+
+    d_weight = base["D"]
+    remaining = {k: v for k, v in base.items() if k != "D"}
+    remaining_sum = sum(remaining.values())
+
+    # Redistribute D weight proportionally
+    redistributed = {}
+    for k, v in base.items():
+        if k == "D":
+            redistributed[k] = 0.0
+        else:
+            redistributed[k] = round(v + d_weight * (v / remaining_sum), 4)
+
+    return redistributed
+
 
 def validate_config() -> dict[str, bool]:
     """Check which API keys are configured."""

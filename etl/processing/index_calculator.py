@@ -28,6 +28,8 @@ from etl.config import (
     WEIGHTS_CONTENT,
     EWMA_ALPHA_TRADE as ALPHA_TRADE,
     EWMA_ALPHA_CONTENT as ALPHA_CONTENT,
+    D_RAW_MIN_THRESHOLD,
+    get_weights_for_model,
 )
 from etl.processing.normalizer import quantile_normalize, cross_model_normalize
 from etl.processing.smoother import ewma
@@ -145,6 +147,15 @@ def calculate_index(
 
         # Raw value is the latest
         components_raw[comp_code] = history[-1]
+
+        # D component: enforce minimum absolute threshold
+        # Prevents quantile normalization from inflating tiny values
+        # (e.g. DeepSeek raw=169 downloads was scored as D=80)
+        if comp_code == "D" and history[-1] < D_RAW_MIN_THRESHOLD:
+            components_raw[comp_code] = history[-1]
+            components_normalized[comp_code] = 0.0
+            components_smoothed[comp_code] = 0.0
+            continue
 
         # Normalize
         normalized = quantile_normalize(history)
@@ -334,6 +345,24 @@ def run_daily_calculation(calc_date: date) -> dict[str, Any]:
     models = get_all_models()
     client = get_client()
 
+    # Load models_config to determine which models have SDK packages
+    import yaml
+    from etl.config import MODELS_CONFIG_PATH
+
+    models_config = {}
+    try:
+        with open(MODELS_CONFIG_PATH, "r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f)
+        models_config = cfg.get("models", {})
+    except Exception as e:
+        logger.warning(f"Could not load models_config.yaml: {e}")
+
+    def _model_has_sdk(slug: str) -> bool:
+        """Check if model has SDK packages (non-empty devadoption_packages)."""
+        model_cfg = models_config.get(slug, {})
+        packages = model_cfg.get("devadoption_packages", [])
+        return bool(packages)
+
     logger.info(f"Running daily calculation for {calc_date} — {len(models)} models")
 
     # ---- Phase 1: Per-model calculation ----
@@ -380,8 +409,6 @@ def run_daily_calculation(calc_date: date) -> dict[str, Any]:
         cross_scores[comp_code] = cross_model_normalize(raw_values)
 
     # ---- Phase 3: Merge and write results ----
-    weights_trade = WEIGHTS_TRADE
-    weights_content = WEIGHTS_CONTENT
     alpha_trade = ALPHA_TRADE
     alpha_content = ALPHA_CONTENT
     results = []
@@ -398,6 +425,14 @@ def run_daily_calculation(calc_date: date) -> dict[str, Any]:
         try:
             trade_result = p1["trade"]
             content_result = p1["content"]
+
+            # Per-model weights: redistribute D weight for non-SDK models
+            has_sdk = _model_has_sdk(slug)
+            weights_trade = get_weights_for_model("trade", has_sdk)
+            weights_content = get_weights_for_model("content", has_sdk)
+
+            if not has_sdk:
+                logger.info(f"  {slug}: no SDK packages, using redistributed weights (D=0)")
 
             # Override normalized values for sparse components
             for comp_code in sparse_components:

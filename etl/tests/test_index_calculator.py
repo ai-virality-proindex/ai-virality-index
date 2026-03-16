@@ -23,7 +23,7 @@ from etl.processing.index_calculator import (
     ALPHA_TRADE,
     ALPHA_CONTENT,
 )
-from etl.config import WEIGHTS_TRADE, WEIGHTS_CONTENT
+from etl.config import WEIGHTS_TRADE, WEIGHTS_CONTENT, D_RAW_MIN_THRESHOLD, get_weights_for_model
 
 
 class TestWeightConfiguration(unittest.TestCase):
@@ -291,6 +291,92 @@ class TestCalculateIndex(unittest.TestCase):
         # (they might be close but are mathematically different due to EWMA alpha)
         self.assertIsInstance(trade["vi_score"], float)
         self.assertIsInstance(content["vi_score"], float)
+
+
+class TestWeightRedistribution(unittest.TestCase):
+    """Test per-model weight redistribution for non-SDK models."""
+
+    def test_sdk_model_gets_standard_weights(self):
+        """Model with SDK packages should get standard weights."""
+        w = get_weights_for_model("trade", has_sdk=True)
+        self.assertEqual(w, WEIGHTS_TRADE)
+
+    def test_non_sdk_model_d_is_zero(self):
+        """Non-SDK model should have D weight = 0."""
+        w = get_weights_for_model("trade", has_sdk=False)
+        self.assertAlmostEqual(w["D"], 0.0)
+
+    def test_non_sdk_weights_sum_to_one(self):
+        """Redistributed weights must still sum to 1.0."""
+        w_trade = get_weights_for_model("trade", has_sdk=False)
+        w_content = get_weights_for_model("content", has_sdk=False)
+        self.assertAlmostEqual(sum(w_trade.values()), 1.0, places=3)
+        self.assertAlmostEqual(sum(w_content.values()), 1.0, places=3)
+
+    def test_non_sdk_other_weights_increase(self):
+        """Without D, other weights should be higher than standard."""
+        w = get_weights_for_model("trade", has_sdk=False)
+        for comp in ["T", "S", "G", "N", "M"]:
+            self.assertGreater(w[comp], WEIGHTS_TRADE[comp],
+                               f"{comp} should increase when D redistributed")
+
+    def test_content_sdk_model_unchanged(self):
+        w = get_weights_for_model("content", has_sdk=True)
+        self.assertEqual(w, WEIGHTS_CONTENT)
+
+    def test_content_non_sdk_d_zero(self):
+        w = get_weights_for_model("content", has_sdk=False)
+        self.assertAlmostEqual(w["D"], 0.0)
+
+
+class TestDRawMinThreshold(unittest.TestCase):
+    """Test D component minimum threshold."""
+
+    def test_threshold_is_1000(self):
+        self.assertEqual(D_RAW_MIN_THRESHOLD, 1000)
+
+    @patch("etl.processing.index_calculator.get_raw_metrics")
+    def test_d_below_threshold_gets_zero(self, mock_raw):
+        """When D raw < 1000, D component should be forced to 0."""
+        from etl.processing.index_calculator import calculate_index
+
+        # Return small D values (like DeepSeek's 169 downloads)
+        def mock_raw_fn(model_id, source, metric, days=90):
+            if source == "devadoption":
+                return [
+                    {"date": f"2026-02-{i:02d}", "metric_value": float(100 + i)}
+                    for i in range(1, 15)
+                ]
+            return [
+                {"date": f"2026-02-{i:02d}", "metric_value": float(i * 100)}
+                for i in range(1, 15)
+            ]
+
+        mock_raw.side_effect = mock_raw_fn
+        result = calculate_index("fake-uuid", date(2026, 2, 18), mode="trade")
+        self.assertAlmostEqual(result["components_smoothed"]["D"], 0.0)
+        self.assertAlmostEqual(result["components_normalized"]["D"], 0.0)
+
+    @patch("etl.processing.index_calculator.get_raw_metrics")
+    def test_d_above_threshold_gets_score(self, mock_raw):
+        """When D raw >= 1000, D should get a normal score."""
+        from etl.processing.index_calculator import calculate_index
+
+        def mock_raw_fn(model_id, source, metric, days=90):
+            if source == "devadoption":
+                return [
+                    {"date": f"2026-02-{i:02d}", "metric_value": float(5000 + i * 100)}
+                    for i in range(1, 15)
+                ]
+            return [
+                {"date": f"2026-02-{i:02d}", "metric_value": float(i * 100)}
+                for i in range(1, 15)
+            ]
+
+        mock_raw.side_effect = mock_raw_fn
+        result = calculate_index("fake-uuid", date(2026, 2, 18), mode="trade")
+        # D should have a real score (not zero)
+        self.assertGreater(result["components_smoothed"]["D"], 0.0)
 
 
 if __name__ == "__main__":
