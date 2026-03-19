@@ -1,22 +1,22 @@
 """
 Index Calculator for AI Virality Index.
 
-Computes the composite VI_trade and VI_content scores (0-100) for each model,
-along with momentum (delta7, acceleration) and trading signals.
+Computes the composite VI score (0-100) for each model,
+along with momentum (delta7, acceleration).
 
-Spec reference: TECHNICAL_SPEC.md sections 2.6 and 2.7
+v0.2: Single 5-component formula (D dropped from weighted sum).
+D data still collected and stored in component_scores for reference.
 
 Component mapping:
     T: source='trends',      metric='interest'
     S: source in ('youtube','hackernews'), averaged
     G: source='github',      'stars_delta_1d' + 'forks_delta_1d'
     N: source='gdelt',       'article_count'
-    D: source='devadoption', 'downloads_daily' (was Q: arena/elo_rating)
     M: source='wikipedia',   'pageviews_7d'
+    D: source='devadoption', 'downloads_daily' (collected but NOT in formula)
 
-Weights (calibrated 2026-03-15 from 28-day validation):
-    Trading: 0.18*T + 0.20*S + 0.12*G + 0.15*N + 0.20*D + 0.15*M
-    Content: 0.25*T + 0.25*S + 0.05*G + 0.25*N + 0.05*D + 0.15*M
+Formula: VI = 0.25*T + 0.25*S + 0.10*G + 0.25*N + 0.15*M
+For models without GitHub (Copilot, Perplexity): G weight redistributed.
 """
 
 import logging
@@ -24,13 +24,16 @@ from datetime import date, timedelta
 from typing import Any
 
 from etl.config import (
-    WEIGHTS_TRADE,
-    WEIGHTS_CONTENT,
-    EWMA_ALPHA_TRADE as ALPHA_TRADE,
-    EWMA_ALPHA_CONTENT as ALPHA_CONTENT,
+    WEIGHTS,
+    EWMA_ALPHA as ALPHA,
     D_RAW_MIN_THRESHOLD,
     get_weights_for_model,
 )
+
+# Components included in the VI formula
+FORMULA_COMPONENTS = ["T", "S", "G", "N", "M"]
+# All components collected (D still tracked but not in formula)
+ALL_COMPONENTS = ["T", "S", "G", "N", "D", "M"]
 from etl.processing.normalizer import quantile_normalize, cross_model_normalize
 from etl.processing.smoother import ewma
 from etl.storage.supabase_client import (
@@ -108,38 +111,36 @@ def calculate_index(
     """
     Calculate the composite index for a model on a given date.
 
+    v0.2: Single 5-component formula. D is still collected/normalized
+    but excluded from the weighted sum.
+
     Steps:
         1. Query raw_metrics for last 90 days per component
         2. Normalize each component (quantile scaling -> 0-100)
         3. Smooth with EWMA
-        4. Apply weighted sum
+        4. Apply weighted sum (T, S, G, N, M only)
 
     Args:
         model_id: UUID of the model.
         calc_date: Date for which to calculate the index.
-        mode: 'trade' or 'content'.
+        mode: Ignored in v0.2 (single formula). Kept for backward compat.
 
     Returns:
         Dict with:
             vi_score: float (0-100),
-            components: {T: float, S: float, G: float, N: float, D: float, M: float},
-            smoothed_components: {T: float, ...},
+            components: {T, S, G, N, D, M},
+            smoothed_components: {T, S, G, N, D, M},
     """
-    weights = WEIGHTS_TRADE if mode == "trade" else WEIGHTS_CONTENT
-    alpha = ALPHA_TRADE if mode == "trade" else ALPHA_CONTENT
+    alpha = ALPHA
 
     components_raw: dict[str, float] = {}
     components_normalized: dict[str, float] = {}
     components_smoothed: dict[str, float] = {}
 
-    for comp_code in ["T", "S", "G", "N", "D", "M"]:
+    for comp_code in ALL_COMPONENTS:
         history = _fetch_component_history(model_id, comp_code, days=90)
 
         if not history:
-            # No data for this component: default to 0 (no signal)
-            # Previously defaulted to 50 which was misleading — models
-            # without a data source (e.g. Perplexity has no GitHub repos)
-            # appeared to have average activity when they had none.
             components_raw[comp_code] = 0.0
             components_normalized[comp_code] = 0.0
             components_smoothed[comp_code] = 0.0
@@ -149,8 +150,6 @@ def calculate_index(
         components_raw[comp_code] = history[-1]
 
         # D component: enforce minimum absolute threshold
-        # Prevents quantile normalization from inflating tiny values
-        # (e.g. DeepSeek raw=169 downloads was scored as D=80)
         if comp_code == "D" and history[-1] < D_RAW_MIN_THRESHOLD:
             components_raw[comp_code] = history[-1]
             components_normalized[comp_code] = 0.0
@@ -165,7 +164,7 @@ def calculate_index(
         if len(history) > 1:
             all_normalized = []
             for i in range(len(history)):
-                window_start = max(0, i - 89)  # 90-day rolling window
+                window_start = max(0, i - 89)
                 window = history[window_start:i + 1]
                 all_normalized.append(quantile_normalize(window, current_value=history[i]))
             smoothed_series = ewma(all_normalized, alpha=alpha)
@@ -173,10 +172,10 @@ def calculate_index(
         else:
             components_smoothed[comp_code] = normalized
 
-    # Weighted sum
+    # Weighted sum — only formula components (T, S, G, N, M), NOT D
     vi_score = sum(
-        weights[c] * components_smoothed[c]
-        for c in ["T", "S", "G", "N", "D", "M"]
+        WEIGHTS.get(c, 0) * components_smoothed[c]
+        for c in FORMULA_COMPONENTS
     )
     vi_score = round(max(0.0, min(100.0, vi_score)), 2)
 
@@ -345,7 +344,7 @@ def run_daily_calculation(calc_date: date) -> dict[str, Any]:
     models = get_all_models()
     client = get_client()
 
-    # Load models_config to determine which models have SDK packages
+    # Load models_config to determine which models have GitHub repos
     import yaml
     from etl.config import MODELS_CONFIG_PATH
 
@@ -357,60 +356,53 @@ def run_daily_calculation(calc_date: date) -> dict[str, Any]:
     except Exception as e:
         logger.warning(f"Could not load models_config.yaml: {e}")
 
-    def _model_has_sdk(slug: str) -> bool:
-        """Check if model has SDK packages (non-empty devadoption_packages)."""
+    def _model_has_github(slug: str) -> bool:
+        """Check if model has GitHub repos (non-empty github_repos)."""
         model_cfg = models_config.get(slug, {})
-        packages = model_cfg.get("devadoption_packages", [])
-        return bool(packages)
+        repos = model_cfg.get("github_repos", [])
+        return bool(repos)
 
     logger.info(f"Running daily calculation for {calc_date} — {len(models)} models")
 
-    # ---- Phase 1: Per-model calculation ----
-    phase1_results: dict[str, dict] = {}  # model_id -> {trade_result, content_result}
+    # ---- Phase 1: Per-model calculation (single formula) ----
+    phase1_results: dict[str, dict] = {}  # model_id -> {result}
 
     for model in models:
         model_id = model["id"]
         slug = model["slug"]
         try:
-            trade_result = calculate_index(model_id, calc_date, mode="trade")
-            content_result = calculate_index(model_id, calc_date, mode="content")
+            result = calculate_index(model_id, calc_date)
             phase1_results[model_id] = {
                 "slug": slug,
-                "trade": trade_result,
-                "content": content_result,
+                "result": result,
             }
         except Exception as e:
             logger.error(f"  {slug}: Phase 1 FAILED — {e}")
             phase1_results[model_id] = {"slug": slug, "error": str(e)}
 
     # ---- Phase 2: Cross-model normalization for sparse components ----
-    # Check which components need cross-model normalization
-    # (use first model to check history length; all models have same date range)
     sparse_components: set[str] = set()
-    for comp_code in ["T", "S", "G", "N", "D", "M"]:
+    for comp_code in ALL_COMPONENTS:
         for model in models:
             model_id = model["id"]
             if model_id in phase1_results and "error" not in phase1_results[model_id]:
                 if _needs_cross_model(model_id, comp_code):
                     sparse_components.add(comp_code)
-                break  # Only need to check one model per component
+                break
 
     if sparse_components:
         logger.info(f"  Cross-model normalization for sparse components: {sparse_components}")
 
-    # Build cross-model scores for sparse components
-    cross_scores: dict[str, dict[str, float]] = {}  # comp -> {model_id -> score}
+    cross_scores: dict[str, dict[str, float]] = {}
     for comp_code in sparse_components:
         raw_values: dict[str, float] = {}
         for model_id, p1 in phase1_results.items():
             if "error" in p1:
                 continue
-            raw_values[model_id] = p1["trade"]["components_raw"].get(comp_code, 0.0)
+            raw_values[model_id] = p1["result"]["components_raw"].get(comp_code, 0.0)
         cross_scores[comp_code] = cross_model_normalize(raw_values)
 
     # ---- Phase 3: Merge and write results ----
-    alpha_trade = ALPHA_TRADE
-    alpha_content = ALPHA_CONTENT
     results = []
 
     for model in models:
@@ -423,48 +415,38 @@ def run_daily_calculation(calc_date: date) -> dict[str, Any]:
             continue
 
         try:
-            trade_result = p1["trade"]
-            content_result = p1["content"]
+            calc_result = p1["result"]
 
-            # Per-model weights: redistribute D weight for non-SDK models
-            has_sdk = _model_has_sdk(slug)
-            weights_trade = get_weights_for_model("trade", has_sdk)
-            weights_content = get_weights_for_model("content", has_sdk)
+            # Per-model weights: redistribute G weight for models without GitHub
+            has_github = _model_has_github(slug)
+            weights = get_weights_for_model(has_github=has_github)
 
-            if not has_sdk:
-                logger.info(f"  {slug}: no SDK packages, using redistributed weights (D=0)")
+            if not has_github:
+                logger.info(f"  {slug}: no GitHub repos, using redistributed weights (G=0)")
 
             # Override normalized values for sparse components
             for comp_code in sparse_components:
                 if comp_code in cross_scores and model_id in cross_scores[comp_code]:
                     cross_val = cross_scores[comp_code][model_id]
-                    trade_result["components_normalized"][comp_code] = cross_val
-                    trade_result["components_smoothed"][comp_code] = cross_val
-                    content_result["components_normalized"][comp_code] = cross_val
-                    content_result["components_smoothed"][comp_code] = cross_val
+                    calc_result["components_normalized"][comp_code] = cross_val
+                    calc_result["components_smoothed"][comp_code] = cross_val
 
-            # Recalculate VI scores with corrected component values
-            vi_trade = sum(
-                weights_trade[c] * trade_result["components_smoothed"][c]
-                for c in ["T", "S", "G", "N", "D", "M"]
+            # Recalculate VI score with corrected component values (5 components)
+            vi_score = sum(
+                weights.get(c, 0) * calc_result["components_smoothed"][c]
+                for c in FORMULA_COMPONENTS
             )
-            vi_trade = round(max(0.0, min(100.0, vi_trade)), 2)
+            vi_score = round(max(0.0, min(100.0, vi_score)), 2)
 
-            vi_content = sum(
-                weights_content[c] * content_result["components_smoothed"][c]
-                for c in ["T", "S", "G", "N", "D", "M"]
-            )
-            vi_content = round(max(0.0, min(100.0, vi_content)), 2)
-
-            # Upsert component scores
-            for comp_code in ["T", "S", "G", "N", "D", "M"]:
+            # Upsert component scores (all 6, including D for reference)
+            for comp_code in ALL_COMPONENTS:
                 comp_row = {
                     "model_id": model_id,
                     "date": calc_date.isoformat(),
                     "component": comp_code,
-                    "raw_value": trade_result["components_raw"].get(comp_code, 0),
-                    "normalized_value": trade_result["components_normalized"].get(comp_code, 0),
-                    "smoothed_value": trade_result["components_smoothed"].get(comp_code, 0),
+                    "raw_value": calc_result["components_raw"].get(comp_code, 0),
+                    "normalized_value": calc_result["components_normalized"].get(comp_code, 0),
+                    "smoothed_value": calc_result["components_smoothed"].get(comp_code, 0),
                 }
                 client.table("component_scores").upsert(
                     comp_row,
@@ -472,45 +454,35 @@ def run_daily_calculation(calc_date: date) -> dict[str, Any]:
                 ).execute()
 
             # Fetch historical scores for momentum
-            trade_history = _get_daily_scores_history(model_id, "vi_trade", days=30)
-            content_history = _get_daily_scores_history(model_id, "vi_content", days=30)
+            vi_history = _get_daily_scores_history(model_id, "vi_trade", days=30)
+            vi_history.append(vi_score)
+            momentum = calculate_momentum(vi_history)
 
-            # Add today's scores to history for momentum calc
-            trade_history.append(vi_trade)
-            content_history.append(vi_content)
-
-            # Momentum
-            trade_momentum = calculate_momentum(trade_history)
-            content_momentum = calculate_momentum(content_history)
-
-            # Trading signal and content heat
+            # Signal/heat scores (kept for backward compat in DB)
             signal_trade = calculate_signal_trade(
-                vi_trade,
-                trade_momentum["delta7"],
-                trade_momentum["acceleration"],
+                vi_score, momentum["delta7"], momentum["acceleration"],
             )
             heat_content = calculate_heat_content(
-                vi_content,
-                content_momentum["delta7"],
+                vi_score, momentum["delta7"],
             )
 
             # Build component breakdown JSON
             breakdown = {}
-            for comp_code in ["T", "S", "G", "N", "D", "M"]:
-                breakdown[comp_code] = trade_result["components_smoothed"].get(comp_code, 0)
+            for comp_code in ALL_COMPONENTS:
+                breakdown[comp_code] = calc_result["components_smoothed"].get(comp_code, 0)
 
-            # Upsert daily scores
+            # Upsert daily scores — vi_trade = vi_content = VI (backward compat)
             daily_row = {
                 "model_id": model_id,
                 "date": calc_date.isoformat(),
-                "vi_trade": vi_trade,
-                "vi_content": vi_content,
+                "vi_trade": vi_score,
+                "vi_content": vi_score,  # same as vi_trade in v0.2
                 "signal_trade": signal_trade,
                 "heat_content": heat_content,
-                "delta7_trade": trade_momentum["delta7"],
-                "delta7_content": content_momentum["delta7"],
-                "accel_trade": trade_momentum["acceleration"],
-                "accel_content": content_momentum["acceleration"],
+                "delta7_trade": momentum["delta7"],
+                "delta7_content": momentum["delta7"],  # same
+                "accel_trade": momentum["acceleration"],
+                "accel_content": momentum["acceleration"],  # same
                 "component_breakdown": breakdown,
             }
             client.table("daily_scores").upsert(
@@ -520,18 +492,17 @@ def run_daily_calculation(calc_date: date) -> dict[str, Any]:
 
             results.append({
                 "model": slug,
-                "vi_trade": vi_trade,
-                "vi_content": vi_content,
+                "vi_trade": vi_score,
+                "vi_content": vi_score,
                 "signal_trade": signal_trade,
                 "heat_content": heat_content,
-                "delta7_trade": trade_momentum["delta7"],
+                "delta7_trade": momentum["delta7"],
                 "status": "OK",
             })
 
             logger.info(
-                f"  {slug}: VI_trade={vi_trade:.1f} VI_content={vi_content:.1f} "
-                f"Signal={signal_trade:.1f} Heat={heat_content:.1f} "
-                f"d7={trade_momentum['delta7']:+.1f}"
+                f"  {slug}: VI={vi_score:.1f} "
+                f"d7={momentum['delta7']:+.1f}"
             )
 
         except Exception as e:

@@ -20,41 +20,43 @@ from etl.processing.index_calculator import (
     calculate_signal_trade,
     calculate_heat_content,
     _normalize_momentum,
-    ALPHA_TRADE,
-    ALPHA_CONTENT,
+    FORMULA_COMPONENTS,
+    ALL_COMPONENTS,
 )
-from etl.config import WEIGHTS_TRADE, WEIGHTS_CONTENT, D_RAW_MIN_THRESHOLD, get_weights_for_model
+from etl.config import WEIGHTS, WEIGHTS_TRADE, WEIGHTS_CONTENT, EWMA_ALPHA, D_RAW_MIN_THRESHOLD, get_weights_for_model
 
 
 class TestWeightConfiguration(unittest.TestCase):
-    """Verify weight sums and values match spec."""
+    """Verify weight sums and values match v0.2 spec."""
 
-    def test_trade_weights_sum_to_one(self):
-        total = sum(WEIGHTS_TRADE.values())
+    def test_weights_sum_to_one(self):
+        total = sum(WEIGHTS.values())
         self.assertAlmostEqual(total, 1.0, places=9)
 
-    def test_content_weights_sum_to_one(self):
-        total = sum(WEIGHTS_CONTENT.values())
-        self.assertAlmostEqual(total, 1.0, places=9)
-
-    def test_trade_weights_match_spec(self):
-        expected = {"T": 0.18, "S": 0.20, "G": 0.12, "N": 0.15, "D": 0.20, "M": 0.15}
+    def test_weights_match_v02_spec(self):
+        expected = {"T": 0.25, "S": 0.25, "G": 0.10, "N": 0.25, "M": 0.15}
         for k, v in expected.items():
-            self.assertAlmostEqual(WEIGHTS_TRADE[k], v, places=9, msg=f"Weight {k}")
+            self.assertAlmostEqual(WEIGHTS[k], v, places=9, msg=f"Weight {k}")
 
-    def test_content_weights_match_spec(self):
-        expected = {"T": 0.25, "S": 0.25, "G": 0.05, "N": 0.25, "D": 0.05, "M": 0.15}
-        for k, v in expected.items():
-            self.assertAlmostEqual(WEIGHTS_CONTENT[k], v, places=9, msg=f"Weight {k}")
+    def test_d_not_in_weights(self):
+        """D should not be in the formula weights."""
+        self.assertNotIn("D", WEIGHTS)
 
-    def test_all_six_components_present(self):
-        components = {"T", "S", "G", "N", "D", "M"}
-        self.assertEqual(set(WEIGHTS_TRADE.keys()), components)
-        self.assertEqual(set(WEIGHTS_CONTENT.keys()), components)
+    def test_backward_compat_aliases(self):
+        """WEIGHTS_TRADE and WEIGHTS_CONTENT should alias WEIGHTS."""
+        self.assertIs(WEIGHTS_TRADE, WEIGHTS)
+        self.assertIs(WEIGHTS_CONTENT, WEIGHTS)
 
-    def test_ewma_alphas(self):
-        self.assertAlmostEqual(ALPHA_TRADE, 0.35)
-        self.assertAlmostEqual(ALPHA_CONTENT, 0.25)
+    def test_formula_components(self):
+        """Formula components should be T, S, G, N, M (not D)."""
+        self.assertEqual(set(FORMULA_COMPONENTS), {"T", "S", "G", "N", "M"})
+
+    def test_all_components(self):
+        """All collected components should include D."""
+        self.assertEqual(set(ALL_COMPONENTS), {"T", "S", "G", "N", "D", "M"})
+
+    def test_ewma_alpha(self):
+        self.assertAlmostEqual(EWMA_ALPHA, 0.30)
 
 
 class TestNormalizeMomentum(unittest.TestCase):
@@ -277,7 +279,8 @@ class TestCalculateIndex(unittest.TestCase):
         self.assertLessEqual(result["vi_score"], 100.0)
 
     @patch("etl.processing.index_calculator.get_raw_metrics")
-    def test_content_mode_uses_different_weights(self, mock_raw):
+    def test_trade_and_content_modes_are_same_in_v02(self, mock_raw):
+        """v0.2: single formula, mode parameter ignored."""
         mock_raw.return_value = [
             {"date": f"2026-02-{i:02d}", "metric_value": float(i * 10)}
             for i in range(1, 15)
@@ -287,46 +290,34 @@ class TestCalculateIndex(unittest.TestCase):
         trade = calculate_index("fake-uuid", date(2026, 2, 18), mode="trade")
         content = calculate_index("fake-uuid", date(2026, 2, 18), mode="content")
 
-        # With same data but different weights, scores should differ
-        # (they might be close but are mathematically different due to EWMA alpha)
-        self.assertIsInstance(trade["vi_score"], float)
-        self.assertIsInstance(content["vi_score"], float)
+        # v0.2: both modes produce the same score
+        self.assertAlmostEqual(trade["vi_score"], content["vi_score"])
 
 
 class TestWeightRedistribution(unittest.TestCase):
-    """Test per-model weight redistribution for non-SDK models."""
+    """Test per-model weight redistribution for models without GitHub."""
 
-    def test_sdk_model_gets_standard_weights(self):
-        """Model with SDK packages should get standard weights."""
-        w = get_weights_for_model("trade", has_sdk=True)
-        self.assertEqual(w, WEIGHTS_TRADE)
+    def test_github_model_gets_standard_weights(self):
+        """Model with GitHub repos should get standard weights."""
+        w = get_weights_for_model(has_github=True)
+        self.assertEqual(w, WEIGHTS)
 
-    def test_non_sdk_model_d_is_zero(self):
-        """Non-SDK model should have D weight = 0."""
-        w = get_weights_for_model("trade", has_sdk=False)
-        self.assertAlmostEqual(w["D"], 0.0)
+    def test_no_github_model_g_is_zero(self):
+        """Model without GitHub should have G weight = 0."""
+        w = get_weights_for_model(has_github=False)
+        self.assertAlmostEqual(w["G"], 0.0)
 
-    def test_non_sdk_weights_sum_to_one(self):
+    def test_no_github_weights_sum_to_one(self):
         """Redistributed weights must still sum to 1.0."""
-        w_trade = get_weights_for_model("trade", has_sdk=False)
-        w_content = get_weights_for_model("content", has_sdk=False)
-        self.assertAlmostEqual(sum(w_trade.values()), 1.0, places=3)
-        self.assertAlmostEqual(sum(w_content.values()), 1.0, places=3)
+        w = get_weights_for_model(has_github=False)
+        self.assertAlmostEqual(sum(w.values()), 1.0, places=3)
 
-    def test_non_sdk_other_weights_increase(self):
-        """Without D, other weights should be higher than standard."""
-        w = get_weights_for_model("trade", has_sdk=False)
-        for comp in ["T", "S", "G", "N", "M"]:
-            self.assertGreater(w[comp], WEIGHTS_TRADE[comp],
-                               f"{comp} should increase when D redistributed")
-
-    def test_content_sdk_model_unchanged(self):
-        w = get_weights_for_model("content", has_sdk=True)
-        self.assertEqual(w, WEIGHTS_CONTENT)
-
-    def test_content_non_sdk_d_zero(self):
-        w = get_weights_for_model("content", has_sdk=False)
-        self.assertAlmostEqual(w["D"], 0.0)
+    def test_no_github_other_weights_increase(self):
+        """Without G, other weights should be higher than standard."""
+        w = get_weights_for_model(has_github=False)
+        for comp in ["T", "S", "N", "M"]:
+            self.assertGreater(w[comp], WEIGHTS[comp],
+                               f"{comp} should increase when G redistributed")
 
 
 class TestDRawMinThreshold(unittest.TestCase):
