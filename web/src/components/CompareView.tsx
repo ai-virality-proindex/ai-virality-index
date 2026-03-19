@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from 'react'
 import CompareChart from './CompareChart'
-import ModeToggle from './ModeToggle'
 import UpsellBanner from './UpsellBanner'
 import { useUserPlan } from '../hooks/useUserPlan'
 import { getIndexColor, formatDelta } from '@/lib/utils'
@@ -32,7 +31,7 @@ interface CompareViewProps {
 }
 
 export default function CompareView({ models, historyMap, latestMap }: CompareViewProps) {
-  const [mode, setMode] = useState<'trade' | 'content'>('trade')
+  const mode = 'trade' as const // Single index — no mode toggle
   const { plan, loading: planLoading } = useUserPlan()
   const showUpsell = !planLoading && (plan === 'anon' || plan === 'free')
   const [selected, setSelected] = useState<string[]>(
@@ -71,14 +70,11 @@ export default function CompareView({ models, historyMap, latestMap }: CompareVi
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Compare Models</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Select 2-{maxModels} models to compare{!isPro && ' (upgrade to Pro for all 7)'}
-          </p>
-        </div>
-        <ModeToggle mode={mode} onChange={setMode} />
+      <div>
+        <h1 className="text-2xl font-bold text-white">Compare Models</h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Select 2-{maxModels} models to compare{!isPro && ' (upgrade to Pro for all 7)'}
+        </p>
       </div>
 
       {/* Model selector */}
@@ -151,9 +147,9 @@ export default function CompareView({ models, historyMap, latestMap }: CompareVi
                   </tr>
                 </thead>
                 <tbody>
-                  {/* Trading Index */}
+                  {/* Virality Index */}
                   <tr className="border-b border-avi-border/50">
-                    <td className="p-4 text-slate-400">Trading Index</td>
+                    <td className="p-4 text-slate-400">Virality Index</td>
                     {selected.map((slug) => {
                       const latest = latestMap[slug]
                       const val = latest?.vi_trade
@@ -166,46 +162,12 @@ export default function CompareView({ models, historyMap, latestMap }: CompareVi
                       )
                     })}
                   </tr>
-                  {/* Content Index */}
-                  <tr className="border-b border-avi-border/50">
-                    <td className="p-4 text-slate-400">Content Index</td>
-                    {selected.map((slug) => {
-                      const latest = latestMap[slug]
-                      const val = latest?.vi_content
-                      return (
-                        <td key={slug} className="p-4 text-center">
-                          <span className="text-lg font-bold" style={{ color: val ? getIndexColor(val) : undefined }}>
-                            {val?.toFixed(1) ?? '—'}
-                          </span>
-                        </td>
-                      )
-                    })}
-                  </tr>
-                  {/* 7d Change (Trading) */}
-                  <tr className="border-b border-avi-border/50">
-                    <td className="p-4 text-slate-400">7d Change (Trade)</td>
+                  {/* 7d Change */}
+                  <tr>
+                    <td className="p-4 text-slate-400">7d Change</td>
                     {selected.map((slug) => {
                       const latest = latestMap[slug]
                       const d = latest?.delta7_trade
-                      return (
-                        <td key={slug} className="p-4 text-center">
-                          {d != null ? (
-                            <span className={`font-medium ${d >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                              {formatDelta(d)}
-                            </span>
-                          ) : (
-                            <span className="text-slate-600">—</span>
-                          )}
-                        </td>
-                      )
-                    })}
-                  </tr>
-                  {/* 7d Change (Content) */}
-                  <tr>
-                    <td className="p-4 text-slate-400">7d Change (Content)</td>
-                    {selected.map((slug) => {
-                      const latest = latestMap[slug]
-                      const d = latest?.delta7_content
                       return (
                         <td key={slug} className="p-4 text-center">
                           {d != null ? (
