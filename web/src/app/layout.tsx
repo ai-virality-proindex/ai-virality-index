@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { Analytics as VercelAnalytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import AuthButton from '../components/AuthButton'
 import Analytics from '../components/Analytics'
 
@@ -43,6 +45,8 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className="min-h-screen bg-avi-dark text-slate-200 antialiased">
         <Analytics />
+        <VercelAnalytics />
+        <SpeedInsights />
         <header className="border-b border-avi-border px-6 py-4">
           <div className="mx-auto flex max-w-7xl items-center justify-between">
             <div className="flex items-center gap-2">
