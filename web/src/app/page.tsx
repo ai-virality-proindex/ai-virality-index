@@ -116,7 +116,7 @@ export default async function Home() {
           </p>
           <p className="text-slate-500 max-w-2xl mx-auto mb-10 text-base leading-relaxed">
             Real-time composite index (0-100) tracking the virality of ChatGPT, Gemini, Claude,
-            DeepSeek, Grok, Perplexity, and Copilot. Powered by 6 data sources,
+            DeepSeek, Grok, Perplexity, and Copilot. Powered by 5 data components,
             updated daily.
           </p>
 
@@ -131,7 +131,7 @@ export default async function Home() {
               href="/pricing"
               className="rounded-lg border border-avi-border px-8 py-3.5 font-semibold text-slate-300 hover:border-slate-400 hover:text-white transition-colors"
             >
-              Get signals before the market moves
+              View pricing plans
             </Link>
           </div>
 
@@ -169,7 +169,7 @@ export default async function Home() {
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">Track</h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                We monitor 7 AI models across Google Trends, YouTube, GitHub, news, and prediction markets every day.
+                We monitor 7 AI models across Google Trends, YouTube, GitHub, news, and Wikipedia every day.
               </p>
             </div>
             {/* Card 2 */}
@@ -193,7 +193,7 @@ export default async function Home() {
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">Act</h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Get trading signals when index diverges from prediction markets, or find trending topics for content creation.
+                Get activity alerts when a model spikes or drops, and spot trending AI topics before they peak.
               </p>
             </div>
           </div>
@@ -263,91 +263,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ====== TWO MODES ====== */}
-      <section className="py-20 border-t border-avi-border/50">
-        <div className="mx-auto max-w-5xl px-6">
-          <h2 className="text-3xl font-bold text-white text-center mb-4">Two Modes, One Index</h2>
-          <p className="text-slate-500 text-center mb-12 max-w-xl mx-auto">
-            Choose the perspective that matches your goal.
-          </p>
-          <div className="grid sm:grid-cols-2 gap-6">
-            {/* Trading mode */}
-            <div className="rounded-xl bg-avi-card border border-avi-border p-8 hover:border-emerald-700 transition-colors">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg bg-emerald-900/40 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-avi-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-white">Trading Mode</h3>
-              </div>
-              <p className="text-sm text-slate-400 mb-5 leading-relaxed">
-                Optimized for prediction market and crypto traders. Catches early attention shifts before odds move.
-              </p>
-              <div className="space-y-2 text-sm text-slate-400">
-                <div className="flex items-center gap-2">
-                  <span className="text-avi-green">&#10003;</span>
-                  Momentum breakout signals
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-avi-green">&#10003;</span>
-                  Momentum divergence detection
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-avi-green">&#10003;</span>
-                  Dev adoption-backed virality filter
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-avi-green">&#10003;</span>
-                  Real-time data (Pro)
-                </div>
-              </div>
-              <div className="mt-6 pt-5 border-t border-avi-border">
-                <p className="text-xs text-slate-600 mb-1">Formula weights</p>
-                <code className="text-xs text-slate-400">0.18T + 0.28S + 0.15G + 0.12N + 0.15D + 0.12M</code>
-              </div>
-            </div>
-
-            {/* Content mode */}
-            <div className="rounded-xl bg-avi-card border border-avi-border p-8 hover:border-blue-700 transition-colors">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg bg-blue-900/40 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-avi-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-white">Content Mode</h3>
-              </div>
-              <p className="text-sm text-slate-400 mb-5 leading-relaxed">
-                Built for YouTubers, bloggers, and marketers. Find trending AI topics for maximum audience reach.
-              </p>
-              <div className="space-y-2 text-sm text-slate-400">
-                <div className="flex items-center gap-2">
-                  <span className="text-avi-blue">&#10003;</span>
-                  Topic heat scoring
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-avi-blue">&#10003;</span>
-                  Social virality emphasis
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-avi-blue">&#10003;</span>
-                  News catalyst detection
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-avi-blue">&#10003;</span>
-                  Content timing insights
-                </div>
-              </div>
-              <div className="mt-6 pt-5 border-t border-avi-border">
-                <p className="text-xs text-slate-600 mb-1">Formula weights</p>
-                <code className="text-xs text-slate-400">0.25T + 0.35S + 0.05G + 0.20N + 0.05D + 0.10M</code>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ====== NEWSLETTER ====== */}
       <section className="py-16 border-t border-avi-border/50">
         <div className="mx-auto max-w-2xl px-6">
@@ -358,17 +273,16 @@ export default async function Home() {
       {/* ====== INDEX COMPONENTS ====== */}
       <section className="py-20 bg-slate-900/50 border-t border-avi-border/50">
         <div className="mx-auto max-w-5xl px-6">
-          <h2 className="text-3xl font-bold text-white text-center mb-4">6 Data Components</h2>
+          <h2 className="text-3xl font-bold text-white text-center mb-4">5 Data Components</h2>
           <p className="text-slate-500 text-center mb-12 max-w-xl mx-auto">
-            Each model&apos;s virality score is built from six normalized signals.
+            Each model&apos;s virality score is built from five normalized signals.
           </p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               { code: 'T', name: 'Search Interest', desc: 'Google Trends search volume and rising queries', color: '#10B981' },
               { code: 'S', name: 'Social Buzz', desc: 'YouTube videos, views, engagement + Hacker News discussion', color: '#3B82F6' },
-              { code: 'G', name: 'Developer Adoption', desc: 'GitHub stars, forks velocity, issue activity', color: '#8B5CF6' },
+              { code: 'G', name: 'GitHub Activity', desc: 'GitHub stars, forks velocity, issue activity', color: '#8B5CF6' },
               { code: 'N', name: 'News Coverage', desc: 'GDELT global news mentions count and sentiment', color: '#F59E0B' },
-              { code: 'D', name: 'Dev Adoption', desc: 'npm + PyPI daily SDK downloads and growth', color: '#EC4899' },
               { code: 'M', name: 'Mindshare', desc: 'Wikipedia pageview volume and trends', color: '#EF4444' },
             ].map((c) => (
               <div key={c.code} className="rounded-lg bg-avi-card border border-avi-border p-5 flex gap-4">
@@ -400,9 +314,9 @@ export default async function Home() {
               <p className="text-4xl font-bold text-white mb-1">$0</p>
               <p className="text-sm text-slate-500 mb-6">Forever</p>
               <ul className="space-y-3 text-sm text-slate-400 mb-8">
-                <li className="flex gap-2"><span className="text-slate-600">&#10003;</span> Current index (1-3 day delay)</li>
+                <li className="flex gap-2"><span className="text-slate-600">&#10003;</span> Current index (24h delay)</li>
                 <li className="flex gap-2"><span className="text-slate-600">&#10003;</span> 90-day chart history</li>
-                <li className="flex gap-2"><span className="text-slate-600">&#10003;</span> All 7 models</li>
+                <li className="flex gap-2"><span className="text-slate-600">&#10003;</span> Notable Changes</li>
                 <li className="flex gap-2"><span className="text-slate-600">&#10003;</span> Basic API (60 req/min)</li>
               </ul>
               <Link href="/dashboard" className="block w-full rounded-lg border border-avi-border py-2.5 text-center text-sm font-medium text-slate-300 hover:border-slate-400 transition-colors">
@@ -410,19 +324,20 @@ export default async function Home() {
               </Link>
             </div>
 
-            {/* Pro Trader */}
+            {/* Pro */}
             <div className="rounded-xl bg-avi-card border-2 border-avi-green p-7 relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-avi-green text-white text-xs font-semibold px-3 py-1 rounded-full">
                 Most Popular
               </div>
-              <p className="text-sm font-semibold text-avi-green uppercase tracking-wider mb-2">Pro Trader</p>
-              <p className="text-4xl font-bold text-white mb-1">$29<span className="text-lg text-slate-500 font-normal">/mo</span></p>
-              <p className="text-sm text-slate-500 mb-6">For prediction market traders</p>
+              <p className="text-sm font-semibold text-avi-green uppercase tracking-wider mb-2">Pro</p>
+              <p className="text-4xl font-bold text-white mb-1">$19<span className="text-lg text-slate-500 font-normal">/mo</span></p>
+              <p className="text-sm text-slate-500 mb-6">For power users</p>
               <ul className="space-y-3 text-sm text-slate-400 mb-8">
                 <li className="flex gap-2"><span className="text-avi-green">&#10003;</span> Real-time data (no delay)</li>
                 <li className="flex gap-2"><span className="text-avi-green">&#10003;</span> Full history</li>
-                <li className="flex gap-2"><span className="text-avi-green">&#10003;</span> Component breakdown (T/S/G/N/D/M)</li>
-                <li className="flex gap-2"><span className="text-avi-green">&#10003;</span> Trading signals + alerts</li>
+                <li className="flex gap-2"><span className="text-avi-green">&#10003;</span> Component breakdown</li>
+                <li className="flex gap-2"><span className="text-avi-green">&#10003;</span> CSV export</li>
+                <li className="flex gap-2"><span className="text-avi-green">&#10003;</span> Webhook alerts</li>
                 <li className="flex gap-2"><span className="text-avi-green">&#10003;</span> API 600 req/min</li>
               </ul>
               <Link href="/pricing" className="block w-full rounded-lg bg-avi-green py-2.5 text-center text-sm font-semibold text-white hover:bg-emerald-600 transition-colors">
@@ -430,26 +345,21 @@ export default async function Home() {
               </Link>
             </div>
 
-            {/* Pro Builder */}
+            {/* Team */}
             <div className="rounded-xl bg-avi-card border border-avi-border p-7">
-              <p className="text-sm font-semibold text-avi-blue uppercase tracking-wider mb-2">Pro Builder</p>
-              <p className="text-4xl font-bold text-white mb-1">$99<span className="text-lg text-slate-500 font-normal">/mo</span></p>
-              <p className="text-sm text-slate-500 mb-6">For devs and teams</p>
+              <p className="text-sm font-semibold text-avi-blue uppercase tracking-wider mb-2">Team</p>
+              <p className="text-4xl font-bold text-white mb-1">$79<span className="text-lg text-slate-500 font-normal">/mo</span></p>
+              <p className="text-sm text-slate-500 mb-6">For teams and developers</p>
               <ul className="space-y-3 text-sm text-slate-400 mb-8">
-                <li className="flex gap-2"><span className="text-avi-blue">&#10003;</span> Everything in Pro Trader</li>
+                <li className="flex gap-2"><span className="text-avi-blue">&#10003;</span> Everything in Pro</li>
                 <li className="flex gap-2"><span className="text-avi-blue">&#10003;</span> API 3,000 req/min</li>
-                <li className="flex gap-2"><span className="text-avi-blue">&#10003;</span> Webhook alerts</li>
-                <li className="flex gap-2"><span className="text-avi-blue">&#10003;</span> CSV export</li>
                 <li className="flex gap-2"><span className="text-avi-blue">&#10003;</span> Priority support</li>
               </ul>
               <Link href="/pricing" className="block w-full rounded-lg border border-avi-border py-2.5 text-center text-sm font-medium text-slate-300 hover:border-slate-400 transition-colors">
-                Start building smarter
+                Get started
               </Link>
             </div>
           </div>
-          <p className="text-center text-xs text-slate-600 mt-6">
-            Enterprise plans from $499/mo &mdash; custom indices, SLA, white-label. <Link href="/pricing#enterprise" className="text-slate-500 hover:text-slate-400 underline">Contact us</Link>
-          </p>
         </div>
       </section>
 

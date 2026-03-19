@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase'
-import { requirePro } from '@/lib/api-auth'
 
 const querySchema = z.object({
   model: z.string().min(1).max(50).optional(),
@@ -10,10 +9,6 @@ const querySchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    // Pro plan required
-    const forbidden = requirePro(request)
-    if (forbidden) return forbidden
-
     const { searchParams } = request.nextUrl
     const parsed = querySchema.safeParse({
       model: searchParams.get('model') ?? undefined,
@@ -103,6 +98,7 @@ export async function GET(request: NextRequest) {
         count: formatted.length,
         active_only: active === 'true',
         model: model ?? 'all',
+        disclaimer: 'Notable changes are descriptive observations, not predictions. Past activity patterns do not guarantee future trends.',
       },
     })
   } catch (err) {

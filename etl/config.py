@@ -38,30 +38,25 @@ RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
 # --- Index Configuration ---
 MODELS_CONFIG_PATH = Path(__file__).parent / "models_config.yaml"
 
-# --- Index Weights ---
-# Q (Arena Elo) removed from formula — static data, measures quality not virality.
-# Replaced with D (Dev Adoption) = npm + PyPI daily SDK downloads.
-WEIGHTS_TRADE = {
-    "T": 0.18,  # Trends (search interest) — moderate volatility, good signal
-    "S": 0.20,  # Social (YouTube + HackerNews) — reduced: too volatile for higher weight
-    "G": 0.12,  # GitHub (star/fork velocity) — reduced: correlated with D (+0.50)
-    "N": 0.15,  # News (GDELT mentions) — increased: best leading indicator (1-2d lead)
-    "D": 0.20,  # Dev Adoption (npm + PyPI downloads) — increased: most stable & reliable
-    "M": 0.15,  # Mindshare (Wikipedia pageviews) — increased: broader coverage
+# --- Index Weights (v0.2: single 5-component formula, D dropped) ---
+# D (Dev Adoption) removed: 45% zeros, 4/7 models have no SDK.
+# Data still collected but not in the formula.
+WEIGHTS = {
+    "T": 0.25,  # Trends (search interest) — reliable, works for all 7 models
+    "S": 0.25,  # Social (YouTube + HackerNews) — reliable, works for all 7 models
+    "G": 0.10,  # GitHub (star/fork velocity) — works for 5/7, redistributed for Copilot/Perplexity
+    "N": 0.25,  # News (GDELT mentions) — best leading indicator, works for all 7
+    "M": 0.15,  # Mindshare (Wikipedia pageviews) — stable baseline
 }
 
-WEIGHTS_CONTENT = {
-    "T": 0.25,  # Trends — search demand = audience looking for guides
-    "S": 0.25,  # Social (YouTube + HackerNews) — reduced: was too dominant
-    "G": 0.05,  # GitHub — developers matter less for content
-    "N": 0.25,  # News — increased: best content predictor & content hooks
-    "D": 0.05,  # Dev Adoption (npm + PyPI downloads) — less relevant for content
-    "M": 0.15,  # Mindshare (Wikipedia pageviews) — increased: captures public interest
-}
+# Backward compat aliases (used by tests and old code paths)
+WEIGHTS_TRADE = WEIGHTS
+WEIGHTS_CONTENT = WEIGHTS
 
 # --- EWMA Smoothing ---
-EWMA_ALPHA_TRADE = 0.35
-EWMA_ALPHA_CONTENT = 0.25
+EWMA_ALPHA = 0.30  # Single smoothing factor
+EWMA_ALPHA_TRADE = EWMA_ALPHA  # backward compat
+EWMA_ALPHA_CONTENT = EWMA_ALPHA
 
 # --- Normalization ---
 QUANTILE_WINDOW = 90  # days
@@ -73,27 +68,25 @@ QUANTILE_HIGH = 0.95
 # Any model with raw downloads < this threshold gets D=0 to prevent false scores.
 D_RAW_MIN_THRESHOLD = 1000  # daily downloads
 
-# --- Weight Redistribution for Non-SDK Models ---
-# Models without SDK packages (Copilot, Grok, Perplexity) have D=0 permanently.
-# Instead of penalizing them with 20% dead weight, redistribute D weight
-# proportionally across remaining components.
-def get_weights_for_model(mode: str, has_sdk: bool) -> dict[str, float]:
-    """Return weight dict, redistributing D weight if model has no SDK packages."""
-    base = WEIGHTS_TRADE if mode == "trade" else WEIGHTS_CONTENT
-    if has_sdk:
+# --- Weight Redistribution for Models Without GitHub ---
+# Copilot and Perplexity have G=0 permanently (no public GitHub repos).
+# Redistribute G weight proportionally across T, S, N, M.
+def get_weights_for_model(mode: str = "trade", has_github: bool = True, has_sdk: bool = True) -> dict[str, float]:
+    """Return weight dict, redistributing G weight if model has no GitHub repos."""
+    base = dict(WEIGHTS)
+    if has_github:
         return base
 
-    d_weight = base["D"]
-    remaining = {k: v for k, v in base.items() if k != "D"}
+    g_weight = base["G"]
+    remaining = {k: v for k, v in base.items() if k != "G"}
     remaining_sum = sum(remaining.values())
 
-    # Redistribute D weight proportionally
     redistributed = {}
     for k, v in base.items():
-        if k == "D":
+        if k == "G":
             redistributed[k] = 0.0
         else:
-            redistributed[k] = round(v + d_weight * (v / remaining_sum), 4)
+            redistributed[k] = round(v + g_weight * (v / remaining_sum), 4)
 
     return redistributed
 

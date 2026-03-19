@@ -127,65 +127,43 @@ For any raw metric `x(t)`:
 EWMA(t) = alpha * x(t) + (1 - alpha) * EWMA(t-1)
 ```
 
-| Mode | Alpha | Rationale |
-|------|-------|-----------|
-| Trading | 0.35 | Faster response to changes |
-| Content | 0.25 | Smoother, marketing-friendly |
+| Alpha | Rationale |
+|-------|-----------|
+| 0.30 | Balanced response — single smoothing factor |
 
 Public chart line: 7-day moving average (visually clearer).
 
-### 2.6 Index Formulas
+### 2.6 Index Formula (v0.2)
 
-#### Mode 1: Trading Index
-
-```
-VI_trade(m,t) = 0.18*T + 0.20*S + 0.12*G + 0.15*N + 0.20*D + 0.15*M
-```
-
-Weight rationale (calibrated 2026-03-15 from 28-day validation):
-- T (0.18): search demand as early signal — moderate volatility, good signal
-- S (0.20): social spread speed — reduced from 0.28: too volatile for its weight
-- G (0.12): developer adoption — reduced from 0.15: correlated with D (+0.50)
-- N (0.15): news/PR catalysts — increased from 0.12: best leading indicator (1-2d lead)
-- D (0.20): dev adoption anchor (npm + PyPI downloads) — increased from 0.15: most stable & reliable
-- M (0.15): mindshare (Wikipedia pageviews) — increased from 0.12: broader coverage
-
-**Trading Signal** (composite with momentum):
+Single 5-component formula (D dropped from weighted sum):
 
 ```
-Delta7(x) = x(t) - x(t-7)          # 7-day momentum
-Accel(x)  = Delta7(x) - Delta7(x, t-7)  # acceleration
-
-Signal_trade(t) = 0.60 * VI_trade(t) + 0.25 * norm(Delta7(VI_trade)) + 0.15 * norm(Accel(VI_trade))
+VI(m,t) = 0.25*T + 0.25*S + 0.10*G + 0.25*N + 0.15*M
 ```
 
-All three sub-components normalized to 0-100.
+Weight rationale (v0.2, based on 32-day validation):
+- T (0.25): search demand — reliable, works for all 7 models
+- S (0.25): social spread (YouTube + HackerNews) — reliable, all 7 models
+- G (0.10): GitHub activity — works for 5/7, redistributed for Copilot/Perplexity
+- N (0.25): news coverage (GDELT) — best leading indicator, all 7 models
+- M (0.15): mindshare (Wikipedia pageviews) — stable baseline
 
-#### Mode 2: Content/Marketing Index
+D (Dev Adoption = npm+PyPI downloads) data is still collected and stored
+in component_scores, but NOT included in the formula (45% zeros, 4/7 models
+have no SDK packages).
 
-```
-VI_content(m,t) = 0.25*T + 0.25*S + 0.05*G + 0.25*N + 0.05*D + 0.15*M
-```
+For models without GitHub repos (Copilot, Perplexity): G weight is
+redistributed proportionally across T, S, N, M.
 
-Weight rationale (calibrated 2026-03-15 from 28-day validation):
-- T (0.25): search demand = audience looking for explanations/guides
-- S (0.25): video/social — reduced from 0.35: was too dominant
-- G (0.05): developers matter less for content
-- N (0.25): news events = content hooks — increased from 0.20: best content predictor
-- D (0.05): dev adoption as filter, not driver — less relevant for content
-- M (0.15): mindshare (Wikipedia pageviews) — increased from 0.10: captures public interest
+### 2.7 Notable Changes (v0.2)
 
-**Topic Heat:**
+Three descriptive signal types (not predictive):
 
-```
-Heat_content(t) = 0.50 * VI_content(t) + 0.50 * norm(Delta7(VI_content))
-```
-
-### 2.7 Divergence Signal (for traders)
-
-```
-Divergence(m,t) = z(Delta7(VI_trade(m))) - z(Delta7(D_downloads(m)))
-```
+| Type | Condition | Direction |
+|------|-----------|-----------|
+| spike | VI rose >1.5σ over 7 days | "rising" |
+| drop | VI fell >1.5σ over 7 days | "declining" |
+| rank_change | Model moved ≥2 rank positions over 7 days | "rising"/"declining" |
 
 Where `D_downloads(m)` = npm + PyPI SDK daily downloads for model m.
 

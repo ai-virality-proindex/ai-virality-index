@@ -5,7 +5,6 @@ import IndexGauge from './IndexGauge'
 import ModelCard, { ModelScore } from './ModelCard'
 import HeatMap from './HeatMap'
 import TopMovers from './TopMovers'
-import ModeToggle from './ModeToggle'
 import UpdateCountdown from './UpdateCountdown'
 import UpsellBanner from './UpsellBanner'
 import WelcomeModal from './WelcomeModal'
@@ -21,7 +20,7 @@ interface DashboardViewProps {
 }
 
 /**
- * Client-side dashboard view with mode toggle.
+ * Client-side dashboard view.
  * Receives server-fetched data as props.
  */
 export default function DashboardView({
@@ -31,7 +30,7 @@ export default function DashboardView({
   lastDate,
   lastFetchedAt,
 }: DashboardViewProps) {
-  const [mode, setMode] = useState<'trade' | 'content'>('trade')
+  const mode = 'trade' as const // Single index — no mode toggle
   const { plan, loading: planLoading } = useUserPlan()
   const showUpsell = !planLoading && (plan === 'anon' || plan === 'free')
 
@@ -70,17 +69,14 @@ export default function DashboardView({
         <WelcomeModal plan={welcomePlan} onClose={() => setShowWelcome(false)} />
       )}
 
-      {/* Header row: title + toggle */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          {lastDate && (
-            <div className="mt-1">
-              <UpdateCountdown lastDate={lastFetchedAt || lastDate} />
-            </div>
-          )}
-        </div>
-        <ModeToggle mode={mode} onChange={setMode} />
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+        {lastDate && (
+          <div className="mt-1">
+            <UpdateCountdown lastDate={lastFetchedAt || lastDate} />
+          </div>
+        )}
       </div>
 
       {scores.length === 0 ? (
@@ -106,7 +102,7 @@ export default function DashboardView({
             <div className="sm:col-span-1 flex justify-center">
               <IndexGauge
                 value={avg}
-                label={mode === 'trade' ? 'Market Average (Trading)' : 'Market Average (Content)'}
+                label="Market Average"
                 size="lg"
               />
             </div>
@@ -121,7 +117,7 @@ export default function DashboardView({
                     className="rounded-xl bg-avi-card border border-avi-border p-4 text-center"
                   >
                     <p className="text-xs text-slate-500 mb-1">
-                      #{i + 1} {mode === 'trade' ? 'Trading' : 'Content'}
+                      #{i + 1}
                     </p>
                     <div
                       className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white mx-auto mb-2"

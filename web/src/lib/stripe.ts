@@ -10,58 +10,56 @@ export function getStripe(): Stripe {
 }
 
 export const PLANS = {
-  pro_trader_monthly: {
-    name: 'Pro Trader',
-    price: 2900, // cents
+  pro_monthly: {
+    name: 'Pro',
+    price: 1900, // $19/mo
     interval: 'month' as const,
     trialDays: 7,
     features: [
       'Real-time data (no delay)',
       'Full history access',
-      'Component breakdown (T/S/G/N/D/M)',
-      'Trading signals & divergence alerts',
+      'Component breakdown',
+      'CSV data export',
+      'Webhook alerts',
       'API: 600 req/min',
     ],
     dbPlan: 'pro' as const,
   },
-  pro_trader_annual: {
-    name: 'Pro Trader (Annual)',
-    price: 24900, // $249/yr — save 28% vs $29*12=$348
+  pro_annual: {
+    name: 'Pro (Annual)',
+    price: 16900, // $169/yr — save 26% vs $19*12=$228
     interval: 'year' as const,
     trialDays: 7,
     features: [
       'Real-time data (no delay)',
       'Full history access',
-      'Component breakdown (T/S/G/N/D/M)',
-      'Trading signals & divergence alerts',
+      'Component breakdown',
+      'CSV data export',
+      'Webhook alerts',
       'API: 600 req/min',
     ],
     dbPlan: 'pro' as const,
   },
-  pro_builder_monthly: {
-    name: 'Pro Builder',
-    price: 9900, // cents
+  team_monthly: {
+    name: 'Team',
+    price: 7900, // $79/mo
     interval: 'month' as const,
     trialDays: 0,
     features: [
-      'Everything in Pro Trader',
+      'Everything in Pro',
       'API: 3,000 req/min',
-      'Webhook alerts',
-      'CSV data export',
       'Priority support',
     ],
     dbPlan: 'enterprise' as const,
   },
-  pro_builder_annual: {
-    name: 'Pro Builder (Annual)',
-    price: 89900, // $899/yr — save 25% vs $99*12=$1188
+  team_annual: {
+    name: 'Team (Annual)',
+    price: 69900, // $699/yr — save 26% vs $79*12=$948
     interval: 'year' as const,
     trialDays: 0,
     features: [
-      'Everything in Pro Trader',
+      'Everything in Pro',
       'API: 3,000 req/min',
-      'Webhook alerts',
-      'CSV data export',
       'Priority support',
     ],
     dbPlan: 'enterprise' as const,
@@ -70,11 +68,14 @@ export const PLANS = {
 
 export type PlanKey = keyof typeof PLANS
 
-/** Resolve legacy plan keys (pro_trader, pro_builder) to new monthly keys */
+/** Resolve legacy and current plan keys */
 export function resolvePlanKey(key: string): PlanKey | null {
   if (key in PLANS) return key as PlanKey
-  if (key === 'pro_trader') return 'pro_trader_monthly'
-  if (key === 'pro_builder') return 'pro_builder_monthly'
+  // Legacy v0.1 keys
+  if (key === 'pro_trader' || key === 'pro_trader_monthly') return 'pro_monthly'
+  if (key === 'pro_trader_annual') return 'pro_annual'
+  if (key === 'pro_builder' || key === 'pro_builder_monthly') return 'team_monthly'
+  if (key === 'pro_builder_annual') return 'team_annual'
   return null
 }
 

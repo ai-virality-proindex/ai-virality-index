@@ -1,7 +1,7 @@
 # AI Virality Index
 
 ## Project
-Real-time AI model virality index (0-100). Two modes: Trading + Content.
+Real-time AI model virality index (0-100). Single unified score.
 Full spec: docs/TECHNICAL_SPEC.md
 
 ## Tech Stack
@@ -26,13 +26,14 @@ Full spec: docs/TECHNICAL_SPEC.md
 - API responses: { data, meta } or { error: { code, message } }
 - DB: Supabase, service_role key for ETL, anon key for frontend
 
-## Index Formula
-- Components: T(Trends), S(Social), G(GitHub), N(News), D(Dev Adoption), M(Mindshare)
-- Trading: 0.18*T + 0.20*S + 0.12*G + 0.15*N + 0.20*D + 0.15*M
-- Content: 0.25*T + 0.25*S + 0.05*G + 0.25*N + 0.05*D + 0.15*M
-- D = npm + PyPI daily SDK downloads (replaced Q/Arena Elo which was static)
-- M = Wikipedia pageviews (replaced Polymarket which had no relevant markets)
+## Index Formula (v0.2)
+- Components: T(Trends), S(Social), G(GitHub), N(News), M(Mindshare)
+- VI = 0.25*T + 0.25*S + 0.10*G + 0.25*N + 0.15*M
+- D (Dev Adoption) data still collected but NOT in formula (45% zeros)
+- For models without GitHub (Copilot, Perplexity): G weight redistributed
+- M = Wikipedia pageviews
 - Normalization: Rolling quantile q05/q95 + Winsorize + EWMA
+- Signals: spike, drop, rank_change (descriptive, not predictive)
 - 7 models: chatgpt, gemini, claude, perplexity, deepseek, grok, copilot
 
 ## Session Rules (MANDATORY)

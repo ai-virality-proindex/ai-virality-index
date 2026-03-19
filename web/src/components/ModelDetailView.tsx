@@ -4,7 +4,6 @@ import { useState, useCallback } from 'react'
 import IndexGauge from './IndexGauge'
 import IndexChart from './IndexChart'
 import BreakdownRadar from './BreakdownRadar'
-import ModeToggle from './ModeToggle'
 import UpdateCountdown from './UpdateCountdown'
 import UpsellBanner from './UpsellBanner'
 import ShareButtons from './ShareButtons'
@@ -68,21 +67,13 @@ export default function ModelDetailView({
   signals,
   lastFetchedAt,
 }: ModelDetailViewProps) {
-  const [mode, setMode] = useState<'trade' | 'content'>('trade')
+  const mode = 'trade' as const // Single index — no mode toggle
   const { plan, loading: planLoading } = useUserPlan()
   const isFreeOrAnon = !planLoading && (plan === 'anon' || plan === 'free')
 
-  const vi = latestScore
-    ? mode === 'trade' ? latestScore.vi_trade : latestScore.vi_content
-    : 0
-  const delta = latestScore
-    ? mode === 'trade' ? latestScore.delta7_trade : latestScore.delta7_content
-    : null
-  const accel = latestScore
-    ? mode === 'trade'
-      ? (latestScore as any).accel_trade
-      : (latestScore as any).accel_content
-    : null
+  const vi = latestScore ? latestScore.vi_trade : 0
+  const delta = latestScore ? latestScore.delta7_trade : null
+  const accel = latestScore ? (latestScore as any).accel_trade : null
 
   return (
     <div className="space-y-8">
@@ -100,10 +91,7 @@ export default function ModelDetailView({
             <p className="text-sm text-slate-500">{model.company}</p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <ShareButtons title={`${model.name} Virality Index`} />
-          <ModeToggle mode={mode} onChange={setMode} />
-        </div>
+        <ShareButtons title={`${model.name} Virality Index`} />
       </div>
 
       {latestScore ? (
@@ -114,7 +102,7 @@ export default function ModelDetailView({
             <div className="flex justify-center">
               <IndexGauge
                 value={vi}
-                label={mode === 'trade' ? 'Trading Index' : 'Content Index'}
+                label="Virality Index"
                 size="lg"
               />
             </div>
@@ -162,19 +150,17 @@ export default function ModelDetailView({
 
             {/* Quick stats */}
             <div className="rounded-xl bg-avi-card border border-avi-border p-5">
-              <h3 className="text-xs text-slate-500 uppercase tracking-wider mb-3">Scores</h3>
+              <h3 className="text-xs text-slate-500 uppercase tracking-wider mb-3">Score</h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-400">Trading</span>
+                  <span className="text-sm text-slate-400">Virality Index</span>
                   <span className="text-lg font-bold" style={{ color: getIndexColor(latestScore.vi_trade) }}>
                     {latestScore.vi_trade.toFixed(1)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-400">Content</span>
-                  <span className="text-lg font-bold" style={{ color: getIndexColor(latestScore.vi_content) }}>
-                    {latestScore.vi_content.toFixed(1)}
-                  </span>
+                  <span className="text-sm text-slate-400">Date</span>
+                  <span className="text-sm text-slate-300">{latestScore.date}</span>
                 </div>
                 <div className="pt-2 border-t border-avi-border">
                   <UpdateCountdown lastDate={lastFetchedAt || latestScore.date} variant="full" />
@@ -202,37 +188,41 @@ export default function ModelDetailView({
               blurred={isFreeOrAnon || breakdown.length === 0}
             />
 
-            {/* Signals */}
+            {/* Notable Changes */}
             <div className="rounded-xl bg-avi-card border border-avi-border p-5">
-              <h3 className="text-sm font-semibold text-white mb-3">Active Signals</h3>
+              <h3 className="text-sm font-semibold text-white mb-3">Notable Changes</h3>
               {signals.length > 0 ? (
                 <div className="space-y-3">
-                  {signals.map((sig, i) => (
-                    <div
-                      key={i}
-                      className="rounded-lg bg-slate-800/50 p-3 border border-avi-border"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                          {sig.signal_type.replace(/_/g, ' ')}
-                        </span>
-                        <span
-                          className={`text-xs font-medium px-2 py-0.5 rounded ${
-                            sig.direction === 'bullish'
-                              ? 'bg-emerald-900/30 text-emerald-400'
-                              : 'bg-red-900/30 text-red-400'
-                          }`}
-                        >
-                          {sig.direction}
-                        </span>
+                  {signals.map((sig, i) => {
+                    const displayDir = sig.direction === 'bullish' ? 'rising' : sig.direction === 'bearish' ? 'declining' : sig.direction
+                    const isRising = displayDir === 'rising'
+                    return (
+                      <div
+                        key={i}
+                        className="rounded-lg bg-slate-800/50 p-3 border border-avi-border"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                            {sig.signal_type.replace(/_/g, ' ')}
+                          </span>
+                          <span
+                            className={`text-xs font-medium px-2 py-0.5 rounded ${
+                              isRising
+                                ? 'bg-emerald-900/30 text-emerald-400'
+                                : 'bg-red-900/30 text-red-400'
+                            }`}
+                          >
+                            {displayDir}
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-300">{sig.reasoning}</p>
+                        <div className="flex justify-between mt-2 text-xs text-slate-500">
+                          <span>Strength: {sig.strength?.toFixed(0)}/100</span>
+                          {sig.expires_at && <span>Expires: {sig.expires_at}</span>}
+                        </div>
                       </div>
-                      <p className="text-sm text-slate-300">{sig.reasoning}</p>
-                      <div className="flex justify-between mt-2 text-xs text-slate-500">
-                        <span>Strength: {sig.strength?.toFixed(0)}/100</span>
-                        {sig.expires_at && <span>Expires: {sig.expires_at}</span>}
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-48 text-center">
@@ -241,9 +231,9 @@ export default function ModelDetailView({
                       <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
                     </svg>
                   </div>
-                  <p className="text-sm text-slate-500 mb-1">No active signals</p>
+                  <p className="text-sm text-slate-500 mb-1">No notable changes</p>
                   <p className="text-xs text-slate-600">
-                    Signals appear when index diverges from market odds.
+                    Changes appear when a model shows significant activity shifts.
                   </p>
                 </div>
               )}

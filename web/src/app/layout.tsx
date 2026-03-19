@@ -71,6 +71,7 @@ export default function RootLayout({
             <div className="flex items-center gap-3">
               <span className="text-sm font-bold text-slate-500">AVI</span>
               <span className="text-xs text-slate-600">&copy; {new Date().getFullYear()} AI Virality Index</span>
+              <span className="text-xs text-slate-700">v0.2.0</span>
             </div>
             <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600">
               <a href="/dashboard" className="hover:text-slate-400 transition-colors">Dashboard</a>
