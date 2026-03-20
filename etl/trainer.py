@@ -60,7 +60,7 @@ def resolve_expired_bets(calc_date: date) -> dict[str, Any]:
             .select("vi_trade")
             .eq("model_id", model_id)
             .eq("date", expires_at)
-            .maybeSingle()
+            .limit(1)
             .execute()
         )
 
@@ -83,7 +83,7 @@ def resolve_expired_bets(calc_date: date) -> dict[str, Any]:
                 continue
             actual_vi = float(fallback.data[0]["vi_trade"])
         else:
-            actual_vi = float(score_result.data["vi_trade"])
+            actual_vi = float(score_result.data[0]["vi_trade"])
 
         # Determine outcome
         direction = bet["direction"]

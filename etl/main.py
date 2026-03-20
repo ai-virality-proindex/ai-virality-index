@@ -342,9 +342,17 @@ def main():
         skip_fetch=args.skip_fetch,
     )
 
-    # Exit with error code if there were failures
-    if summary.get("sources_errors", 0) > 0:
+    # Exit with error code only if index calculation failed (critical)
+    # Individual source fetch errors (pytrends 429, GDELT rate limits) are expected
+    models_calculated = summary.get("models_calculated", 0)
+    if models_calculated == 0:
+        logger.error("CRITICAL: No models calculated — exiting with error")
         sys.exit(1)
+    elif summary.get("sources_errors", 0) > 0:
+        logger.warning(
+            f"Pipeline completed with {summary['sources_errors']} fetch errors "
+            f"(non-critical, {models_calculated} models still calculated)"
+        )
 
 
 if __name__ == "__main__":
